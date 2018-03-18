@@ -31,5 +31,17 @@ namespace BeenThereDoneThat
 
             FlightGlobals.fetch.SetShipOrbit(selBodyIndex, ecc, sma, inc, LAN, mna, argPe, ObT);
         }
+
+        [KSPEvent(guiActive = true, guiName = "Remember orbit.")]
+        public void RememberOrbit()
+        {
+            OrbitController.Instance.RememberOrbit();
+        }
+
+        [KSPEvent(guiActive = true, guiName = "Restore remembered orbit.")]
+        public void RestoreOrbit()
+        {
+            OrbitController.Instance.RestoreOrbit();
+        }
     }
 }
