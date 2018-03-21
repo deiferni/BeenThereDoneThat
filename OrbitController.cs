@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace BeenThereDoneThat
 {
@@ -84,7 +86,17 @@ namespace BeenThereDoneThat
 
             Debug.Log(
                 string.Format("[OrbitController]: REMEMBERING ORBIT> sma: {0} ecc: {1} inc: {2} LAN: {3} mna: {4} argPe: {5}",
-                sma, ecc, inc, LAN, mna, argPe));
+                              sma, ecc, inc, LAN, mna, argPe));
+            
+
+            string directory = KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/BeenThereDoneThat/";
+            System.IO.Directory.CreateDirectory(directory);
+            string path = System.IO.Path.Combine(directory, "LastVessel.craft");
+
+            Vessel vessel = FlightGlobals.ActiveVessel;
+            ConfigNode node = new ConfigNode();
+            vessel.protoVessel.Save(node);
+            node.Save(path);
         }
 
         public void RestoreOrbit()
@@ -97,11 +109,48 @@ namespace BeenThereDoneThat
                     ScreenMessageStyle.UPPER_CENTER);
                 return;
             }
+            
             Debug.Log(
                 string.Format("[OrbitController]: RESTORING ORBIT> sma: {0} ecc: {1} inc: {2} LAN: {3} mna: {4} argPe: {5}",
-                sma, ecc, inc, LAN, mna, argPe));
+                              sma, ecc, inc, LAN, mna, argPe));
 
-            FlightGlobals.fetch.SetShipOrbit(selBodyIndex, ecc, sma, inc, LAN, argPe, mna, 0);
+
+            string directory = KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/BeenThereDoneThat/";
+            string path = System.IO.Path.Combine(directory, "LastVessel.craft");
+
+            ConfigNode node = ConfigNode.Load(path);
+            ProtoVessel proto = new ProtoVessel(node, HighLogic.CurrentGame);
+            proto.vesselName = "Last Vessel";
+
+            foreach (ProtoPartSnapshot p in proto.protoPartSnapshots)
+            {
+                if (p.protoModuleCrew != null && p.protoModuleCrew.Count != 0)
+                {
+                    List<ProtoCrewMember> cl = p.protoModuleCrew;
+                    List<ProtoCrewMember> clc = new List<ProtoCrewMember>(cl);
+
+                    foreach (ProtoCrewMember c in clc)
+                    {
+                        p.RemoveCrew(c);
+                    }
+                }
+            }
+
+            proto.Load(HighLogic.CurrentGame.flightState);
+            Vessel vessel = proto.vesselRef;
+
+            System.Random rand = new System.Random();
+            Vector3d offset = new Vector3d(
+                (double)rand.Next(10, 30),
+                (double)rand.Next(10, 30),
+                (double)rand.Next(10, 30));
+
+            Debug.Log(
+                string.Format("[OrbitController]: orbit offset> x: {0} y: {1} z: {2}",
+                              offset.x, offset.y, offset.z));
+
+            // vessel.orbit.UpdateFromStateVectors(vessel.orbit.pos + offset, vessel.orbit.vel, vessel.orbit.referenceBody, Planetarium.GetUniversalTime());
+            // FlightGlobals.fetch.SetShipOrbit(selBodyIndex, ecc, sma, inc, LAN, argPe, mna, 0);
         }
 
     }
