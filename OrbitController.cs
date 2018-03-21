@@ -2,36 +2,71 @@
 
 namespace BeenThereDoneThat
 {
-    [KSPAddon(KSPAddon.Startup.AllGameScenes, false)]
-    public class OrbitController : MonoBehaviour
+    [KSPScenario(ScenarioCreationOptions.AddToAllGames, new GameScenes[]
     {
-        public int selBodyIndex;
+        GameScenes.FLIGHT,
+        GameScenes.TRACKSTATION,
+        GameScenes.SPACECENTER,
+        GameScenes.EDITOR
+    })]
+    public class OrbitController : ScenarioModule
+    {
+        public int selBodyIndex = -1;
         public double sma;
         public double ecc;
         public double inc;
         public double LAN;
         public double mna;
         public double argPe;
-        public bool hasData = false;
 
         public static OrbitController Instance
         {
             get;
-            set;
+            private set;
         }
 
-        void Awake()
+        public override void OnAwake()
         {
-            if (Instance == null)
+            Debug.Log("[OrbitController]: AWAKING ORBITCONTROLLER");
+            OrbitController.Instance = this;
+        }
+
+        public override void OnSave(ConfigNode node)
+        {
+            Debug.Log("[OrbitController]: SAVING ORBITCONTROLLER");
+
+            if (selBodyIndex < 0)
             {
-                Instance = this;
-            }
-            else if (Instance != this)
-            {
-                Destroy(gameObject);
+                return;
             }
 
-            DontDestroyOnLoad(gameObject);
+            ConfigNode bddtnode = node.AddNode("BeenThereDoneThat");
+            bddtnode.AddValue("selBodyIndex", selBodyIndex);
+            bddtnode.AddValue("sma", sma);
+            bddtnode.AddValue("ecc", ecc);
+            bddtnode.AddValue("inc", inc);
+            bddtnode.AddValue("LAN", LAN);
+            bddtnode.AddValue("mna", mna);
+            bddtnode.AddValue("argPe", argPe);
+        }
+
+        public override void OnLoad(ConfigNode node)
+        {
+            Debug.Log("[OrbitController]: LOADING ORBITCONTROLLER");
+
+            if (!node.HasNode("BeenThereDoneThat"))
+            {
+                return;
+            }
+               
+            ConfigNode bddtnode = node.GetNode("BeenThereDoneThat");
+            selBodyIndex = int.Parse(bddtnode.GetValue("selBodyIndex"));
+            sma = double.Parse(bddtnode.GetValue("sma"));
+            ecc = double.Parse(bddtnode.GetValue("ecc"));
+            inc = double.Parse(bddtnode.GetValue("inc"));
+            LAN = double.Parse(bddtnode.GetValue("LAN"));
+            mna = double.Parse(bddtnode.GetValue("mna"));
+            argPe = double.Parse(bddtnode.GetValue("argPe"));
         }
 
         public void RememberOrbit()
@@ -47,25 +82,23 @@ namespace BeenThereDoneThat
             mna = orbit.meanAnomalyAtEpoch;
             argPe = orbit.argumentOfPeriapsis;
 
-            hasData = true;
-
             Debug.Log(
-                string.Format("sma: {0} ecc: {1} inc: {2} LAN: {3} mna: {4} argPe: {5}",
+                string.Format("[OrbitController]: REMEMBERING ORBIT> sma: {0} ecc: {1} inc: {2} LAN: {3} mna: {4} argPe: {5}",
                 sma, ecc, inc, LAN, mna, argPe));
         }
 
         public void RestoreOrbit()
         {
-            if (!hasData) {
+            if (selBodyIndex < 0)
+            {
                 ScreenMessages.PostScreenMessage(
                     "No orbit has been remembered yet.",
                     5.0f,
                     ScreenMessageStyle.UPPER_CENTER);
                 return;
             }
-
             Debug.Log(
-                string.Format("sma: {0} ecc: {1} inc: {2} LAN: {3} mna: {4} argPe: {5}",
+                string.Format("[OrbitController]: RESTORING ORBIT> sma: {0} ecc: {1} inc: {2} LAN: {3} mna: {4} argPe: {5}",
                 sma, ecc, inc, LAN, mna, argPe));
 
             FlightGlobals.fetch.SetShipOrbit(selBodyIndex, ecc, sma, inc, LAN, argPe, mna, 0);
