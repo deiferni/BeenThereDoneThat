@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace BeenThereDoneThat
 {
@@ -6,7 +7,35 @@ namespace BeenThereDoneThat
     public class PayloadSeparatorPart : PartModule
     {
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true)]
-        public bool isPayloadNode;
+        public bool isPayloadSeparator;
+
+        [KSPEvent(guiActive = true, guiName = "Set as payload separator")]
+        public void SetPayloadSeparator()
+        {
+            SetActive(vessel.parts);
+        }
+
+        [KSPEvent(guiActiveEditor = true, guiName = "Set as payload separator")]
+        public void SetEditorPayloadSeparator()
+        {
+            SetActive(EditorLogic.SortedShipList);
+        }
+
+        private void SetActive(List<Part> parts)
+        {
+            foreach (Part part in parts)
+            {
+                foreach (PayloadSeparatorPart module in part.FindModulesImplementing<PayloadSeparatorPart>())
+                {
+                    if (module.isPayloadSeparator)
+                    {
+                        Debug.Log(string.Format("Disabling payload separtor on {0}:{1}", part.name, module.name));
+                        module.isPayloadSeparator = false;
+                    }
+                }
+            }
+            isPayloadSeparator = true;
+        }
 
         [KSPEvent(guiActive = true, guiName = "Put me into orbit. NOW!")]
         public void PutMeIntoOrbitNow()
