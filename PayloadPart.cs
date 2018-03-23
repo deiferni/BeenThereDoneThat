@@ -37,6 +37,33 @@ namespace BeenThereDoneThat
             isPayloadSeparator = true;
         }
 
+        [KSPEvent(guiActiveEditor = true, guiName = "Save launch vehicle submodule")]
+        public void SaveLaunchVehivleSubModule()
+        {
+            List<Part> parts = new List<Part>();
+
+            foreach (Part part in EditorLogic.SortedShipList)
+            {
+                foreach (PayloadSeparatorPart module in part.FindModulesImplementing<PayloadSeparatorPart>())
+                {
+                    if (module.isPayloadSeparator)
+                    {
+
+                        ShipConstruct shipConstruct = new ShipConstruct("My subassembly", "wohooo", part);
+                        int inverseStage = EditorLogic.RootPart.inverseStage;
+                        foreach (Part pt in shipConstruct.parts)
+                        {
+                            pt.inverseStage -= inverseStage;
+                        }
+                        ShipConstruction.SaveSubassembly(shipConstruct, "My subassembly");
+                        return;
+                    }
+                }
+            }
+
+            Debug.Log("No payloadseparator found");
+        }
+
         [KSPEvent(guiActive = true, guiName = "Put me into orbit. NOW!")]
         public void PutMeIntoOrbitNow()
         {
