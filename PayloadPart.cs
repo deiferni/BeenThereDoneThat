@@ -37,6 +37,127 @@ namespace BeenThereDoneThat
             isPayloadSeparator = true;
         }
 
+        [KSPEvent(guiActive = true, guiName = "Debug available parts")]
+        public void DebugPartAvailableParts()
+        {
+            // Find proto parts and resouces
+            string text = KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/Subassemblies/";
+            string text2 = text + "My subassembly" + ".craft";
+            List<AvailablePart> protoPartInfos = new List<AvailablePart>();
+            ConfigNode subModuleRootNode = ConfigNode.Load(text2);
+            Dictionary<string, double> protoResources = new Dictionary<string, double>();
+            Debug.Log(string.Format("path {0}", text2));
+            Debug.Log(string.Format("Part laoder is ready: {0}", PartLoader.Instance.IsReady()));
+            Debug.Log(string.Format("amount of loaded parts: {0}", PartLoader.Instance.loadedParts.Count));
+            Debug.Log(string.Format("amount of parts: {0}", PartLoader.Instance.parts.Count));
+            foreach (ConfigNode partNode in subModuleRootNode.nodes)
+            {
+                string partname = KSPUtil.GetPartName(partNode.GetValue("part"));
+                Debug.Log(string.Format("partname: {0}", partname));
+                AvailablePart thepart = PartLoader.getPartInfoByName(partname);
+                Debug.Log(string.Format("the part: {0}", thepart));
+                protoPartInfos.Add(thepart);
+
+                foreach (ConfigNode moduleNode in partNode.nodes)
+                {
+                    if (moduleNode.name != "RESOURCE")
+                    {
+                        continue;
+                    }
+
+                    string resourceName = moduleNode.GetValue("name");
+                    double amount = double.Parse(moduleNode.GetValue("amount"));
+                    Debug.Log(string.Format("Found resource {0}: amount: {1}", resourceName, amount));
+
+                    if (!protoResources.ContainsKey(resourceName))
+                    {
+                        protoResources[resourceName] = 0;
+                    }
+                    protoResources[resourceName] += amount;
+                }
+            }
+            foreach (string resourceKey in protoResources.Keys)
+            {
+                Debug.Log(string.Format("Total resource {0}: amount: {1}", resourceKey, protoResources[resourceKey]));
+            }
+
+            // Find vessel parts and resouces
+            List<AvailablePart> partInfos = new List<AvailablePart>();
+            Dictionary<string, double> resources = new Dictionary<string, double>();
+            // just hope the vessel parts are ordered somehow
+            bool found = false;
+            foreach (Part part in vessel.parts)
+            {
+                if (!found)
+                {
+                    foreach (PayloadSeparatorPart module in part.FindModulesImplementing<PayloadSeparatorPart>())
+                    {
+                        if (module.isPayloadSeparator)
+                        {
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                if (found)
+                {
+                    Debug.Log(string.Format("the part: {0}", part.partInfo.name));
+                    partInfos.Add(part.partInfo);
+                    foreach (PartResource partResource in part.Resources)
+                    {
+                        if (!resources.ContainsKey(partResource.resourceName))
+                        {
+                            resources[partResource.resourceName] = 0;
+                        }
+                        resources[partResource.resourceName] += partResource.amount;
+
+                    }
+                }
+            }
+            foreach (string resourceKey in resources.Keys)
+            {
+                Debug.Log(string.Format("Total resource {0}: amount: {1}", resourceKey, resources[resourceKey]));
+            }
+
+            // Compare parts by name and order
+            Debug.Log(string.Format("vessel parts {0}", partInfos.Count));
+            Debug.Log(string.Format("proto vessel parts {0}", protoPartInfos.Count));
+            if (partInfos.Count != protoPartInfos.Count)
+            {
+                Debug.Log("parts are not equal!");
+                return;
+            }
+
+            for (int i = 0; i < partInfos.Count; i++)
+            {
+                Debug.Log(string.Format("partInfos part: {0}", partInfos[i].name));
+                Debug.Log(string.Format("protoPartInfos part: {0}", protoPartInfos[i].name));
+                if (partInfos[i].name != protoPartInfos[i].name) {
+                    Debug.Log(string.Format("parts are not equal at {0}: {1} != {2}", i, partInfos[i].name, protoPartInfos[i].name));
+                    return;
+                }
+
+            }
+            Debug.Log("parts are equal!");
+
+            // Compare resouces by amount
+            Debug.Log(string.Format("vessel resources {0}", resources.Count));
+            Debug.Log(string.Format("proto vessel resources {0}", protoResources.Count));
+            if (resources.Count != protoResources.Count)
+            {
+                return;
+            }
+            foreach (string resourceKey in resources.Keys)
+            {
+                if (resources[resourceKey] != protoResources[resourceKey])
+                {
+                    Debug.Log(string.Format("resource mismatch {0}: {1} != {2}", resourceKey, resources[resourceKey], protoResources[resourceKey]));
+                    return;
+                }
+            }
+            Debug.Log("resources are equal!");
+        }
+
         [KSPEvent(guiActiveEditor = true, guiName = "Save launch vehicle submodule")]
         public void SaveLaunchVehivleSubModule()
         {
