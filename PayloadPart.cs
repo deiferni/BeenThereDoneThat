@@ -37,6 +37,13 @@ namespace BeenThereDoneThat
             isPayloadSeparator = true;
         }
 
+        [KSPEvent(guiActive = true, guiName = "Destroy last part")]
+        public void DestroyLastPart()
+        {
+            Part lastPart = vessel.parts[vessel.parts.Count - 1];
+            lastPart.Die();
+        }
+
         [KSPEvent(guiActive = true, guiName = "Debug available parts")]
         public void DebugPartAvailableParts()
         {
