@@ -5,5 +5,6 @@ copy BeenThereDoneThat.dll %DIR%
 
 cd %1
 copy PayloadSeparatorPartModuleManager.cfg %DIR%
+xcopy /s /f /y Resources %DIR%Resources\
 
 call test.bat
