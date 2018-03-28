@@ -192,6 +192,26 @@ namespace BeenThereDoneThat
             Debug.Log("No payloadseparator found");
         }
 
+        [KSPEvent(guiActive = true, guiName = "Save launch vehicle submodule")]
+        public void SaveLaunchVehivleSubModuleFlight()
+        {
+            foreach (Part part in vessel.parts)
+            {
+                foreach (PayloadSeparatorPart module in part.FindModulesImplementing<PayloadSeparatorPart>())
+                {
+                    if (module.isPayloadSeparator)
+                    {
+                        ShipConstruct shipConstruct = new ShipConstruct("Launched vehicle as submodule", "wohooo", part);
+                        ShipConstruction.SaveSubassembly(shipConstruct, "Launched vehicle as submodul");
+
+                        Debug.Log("Saved launched vessel as submodule");
+                        return;
+                    }
+                }
+            }
+            Debug.Log("No payloadseparator found");
+        }
+
         [KSPEvent(guiActive = true, guiName = "Put me into orbit. NOW!")]
         public void PutMeIntoOrbitNow()
         {
