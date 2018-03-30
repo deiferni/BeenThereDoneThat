@@ -71,7 +71,7 @@ namespace BeenThereDoneThat
             argPe = double.Parse(bddtnode.GetValue("argPe"));
         }
 
-        public void RememberOrbit()
+        public void RememberVessel(string name)
         {
             Orbit orbit = FlightGlobals.ActiveVessel.orbit;
             CelestialBody body = FlightGlobals.ActiveVessel.mainBody;
@@ -91,7 +91,7 @@ namespace BeenThereDoneThat
 
             string directory = KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/BeenThereDoneThat/";
             System.IO.Directory.CreateDirectory(directory);
-            string path = System.IO.Path.Combine(directory, "LastVessel.craft");
+            string path = System.IO.Path.Combine(directory, name);
 
             Vessel vessel = FlightGlobals.ActiveVessel;
             ConfigNode node = new ConfigNode();
@@ -116,7 +116,7 @@ namespace BeenThereDoneThat
 
 
             string directory = KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/BeenThereDoneThat/";
-            string path = System.IO.Path.Combine(directory, "LastVessel.craft");
+            string path = System.IO.Path.Combine(directory, "VesselOrbit.craft");
 
             ConfigNode node = ConfigNode.Load(path);
             ProtoVessel proto = new ProtoVessel(node, HighLogic.CurrentGame);
