@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace BeenThereDoneThat
@@ -111,11 +112,11 @@ namespace BeenThereDoneThat
             }
 
             // find orbit information and restore orbit
+            int orbitStage = -1;
             string text = KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/BeenThereDoneThat/";
             string text2 = text + "VesselOrbit.craft";
             ConfigNode subModuleRootNode = ConfigNode.Load(text2);
             ConfigNode orbitNode = subModuleRootNode.GetNode("ORBIT");
-            int orbitStage = int.Parse(subModuleRootNode.GetValue("stg"));
 
             int selBodyIndex = int.Parse(orbitNode.GetValue("REF"));
             double sma = double.Parse(orbitNode.GetValue("SMA"));
@@ -160,6 +161,9 @@ namespace BeenThereDoneThat
                         }
                     }
                 }
+
+                orbitStage = Math.Max(orbitStage, int.Parse(protoPartNode.GetValue("istg")));
+
                 if (!foundProtoSeparator)
                 {
                     continue;
