@@ -115,6 +115,7 @@ namespace BeenThereDoneThat
             string text2 = text + "VesselOrbit.craft";
             ConfigNode subModuleRootNode = ConfigNode.Load(text2);
             ConfigNode orbitNode = subModuleRootNode.GetNode("ORBIT");
+            int orbitStage = int.Parse(subModuleRootNode.GetValue("stg"));
 
             int selBodyIndex = int.Parse(orbitNode.GetValue("REF"));
             double sma = double.Parse(orbitNode.GetValue("SMA"));
@@ -180,14 +181,31 @@ namespace BeenThereDoneThat
             // removing burned stages/parts
             if (protoPartNodes.Length < vessel.parts.Count)
             {
-                int count = vessel.parts.Count - protoPartNodes.Length;
-                Debug.Log(string.Format("Removing {0} burned parts", count));
-                List<Part> partsToDelete = vessel.parts.GetRange(protoPartNodes.Length, count);
-                partsToDelete.Reverse();
-                foreach (Part toDelete in partsToDelete)
+                int diff = vessel.parts.Count - protoPartNodes.Length;
+                int count = 0;
+                List<Part> toDie = new List<Part>();
+                Debug.Log(string.Format("Removing {0} burned parts below stage {1}", diff, orbitStage));
+
+                foreach (Part vesselPart in vessel.parts)
                 {
-                    Debug.Log(string.Format("Removing part {0}", toDelete.name));
-                    //toDelete.Die();
+                    if (vesselPart.defaultInverseStage > orbitStage)
+                    {
+                        Debug.Log(string.Format("Removing part {0}", vesselPart.name));
+                        toDie.Add(vesselPart);
+                        count++;
+                    }
+                }
+                if (count != diff)
+                {
+                    Debug.Log(string.Format("Expected to remote {0} but got {1} parts", diff, count));
+                }
+                else
+                {
+                    toDie.Reverse();
+                    foreach (Part spent in toDie)
+                    {
+                        spent.Die();
+                    }
                 }
             }
             else
