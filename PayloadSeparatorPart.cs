@@ -85,16 +85,18 @@ namespace BeenThereDoneThat
             string text = KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/BeenThereDoneThat/";
             string text2 = text + "VesselOrbit.craft";
             ConfigNode subModuleRootNode = ConfigNode.Load(text2);
-            ConfigNode orbitNode = subModuleRootNode.GetNode("ORBIT");
 
-            int selBodyIndex = int.Parse(orbitNode.GetValue("REF"));
-            double sma = double.Parse(orbitNode.GetValue("SMA"));
-            double ecc = double.Parse(orbitNode.GetValue("ECC"));
-            double inc = double.Parse(orbitNode.GetValue("INC"));
-            double LAN = double.Parse(orbitNode.GetValue("LAN"));
-            double mna = double.Parse(orbitNode.GetValue("MNA"));
-            double argPe = double.Parse(orbitNode.GetValue("LPE"));
-            double epoch = double.Parse(orbitNode.GetValue("EPH"));
+            ProtoVessel protoVessel = new ProtoVessel(subModuleRootNode, HighLogic.CurrentGame);
+            OrbitSnapshot protoOrbit = protoVessel.orbitSnapShot;
+
+            int selBodyIndex = protoOrbit.ReferenceBodyIndex;
+            double sma = protoOrbit.semiMajorAxis;
+            double ecc = protoOrbit.eccentricity;
+            double inc = protoOrbit.inclination;
+            double LAN = protoOrbit.LAN;
+            double mna = protoOrbit.meanAnomalyAtEpoch;
+            double argPe = protoOrbit.argOfPeriapsis;
+            double epoch = protoOrbit.epoch;
 
             Debug.Log(
                 string.Format("[BeenThereDoneThat]: RESTORING ORBIT> sma: {0} ecc: {1} inc: {2} LAN: {3} mna: {4} argPe: {5} epoch: {6}",
@@ -192,46 +194,26 @@ namespace BeenThereDoneThat
             // Find proto parts and resouces
             string text = KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/BeenThereDoneThat/";
             string text2 = text + "VesselLaunch.craft";
-            bool foundProtoSeparator = false;
+
             List<AvailablePart> protoPartInfos = new List<AvailablePart>();
             ConfigNode subModuleRootNode = ConfigNode.Load(text2);
-            Dictionary<string, double> protoResources = new Dictionary<string, double>();
-            Debug.Log(string.Format("[BeenThereDoneThat]: path {0}", text2));
-            Debug.Log(string.Format("[BeenThereDoneThat]: Part laoder is ready: {0}", PartLoader.Instance.IsReady()));
-            Debug.Log(string.Format("[BeenThereDoneThat]: amount of loaded parts: {0}", PartLoader.Instance.loadedParts.Count));
-            Debug.Log(string.Format("[BeenThereDoneThat]: amount of parts: {0}", PartLoader.Instance.parts.Count));
-            foreach (ConfigNode partNode in subModuleRootNode.GetNodes("PART"))
+            ProtoVessel protoVessel = new ProtoVessel(subModuleRootNode, HighLogic.CurrentGame);
+
+            ProtoLaunchVehicle launchVehicle = null;
+            ProtoPayload payload = null;
+            if (!QuickLauncher.Instance.Split(protoVessel, out launchVehicle, out payload))
             {
-                if (!foundProtoSeparator)
-                {
-                    foreach (ConfigNode maybePayloadSeparatorModule in partNode.GetNodes("MODULE"))
-                    {
-                        if (maybePayloadSeparatorModule.GetValue("name") != "PayloadSeparatorPart")
-                        {
-                            continue;
-                        }
+                return false;
+            }
 
-                        if (bool.Parse(maybePayloadSeparatorModule.GetValue("isPayloadSeparator")))
-                        {
-                            foundProtoSeparator = true;
-                        }
-                    }
-                }
-                if (!foundProtoSeparator)
+            Dictionary<string, double> protoResources = new Dictionary<string, double>();
+            launchVehicle.DebugParts();
+            foreach (ProtoPartSnapshot protoPart in launchVehicle.parts)
+            {
+                foreach (ProtoPartResourceSnapshot protoResource in protoPart.resources)
                 {
-                    continue;
-                }
-
-                string partname = partNode.GetValue("name");
-                Debug.Log(string.Format("[BeenThereDoneThat]: partname: {0}", partname));
-                AvailablePart thepart = PartLoader.getPartInfoByName(partname);
-                Debug.Log(string.Format("[BeenThereDoneThat]: the part: {0}", thepart));
-                protoPartInfos.Add(thepart);
-
-                foreach (ConfigNode moduleNode in partNode.GetNodes("RESOURCE"))
-                {
-                    string resourceName = moduleNode.GetValue("name");
-                    double amount = double.Parse(moduleNode.GetValue("amount"));
+                    string resourceName = protoResource.resourceName;
+                    double amount = protoResource.amount;
                     Debug.Log(string.Format("[BeenThereDoneThat]: Found resource {0}: amount: {1}", resourceName, amount));
 
                     if (!protoResources.ContainsKey(resourceName))
@@ -240,6 +222,7 @@ namespace BeenThereDoneThat
                     }
                     protoResources[resourceName] += amount;
                 }
+                protoPartInfos.Add(protoPart.partInfo);
             }
             foreach (string resourceKey in protoResources.Keys)
             {

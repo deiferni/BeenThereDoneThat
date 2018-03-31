@@ -34,6 +34,37 @@ namespace BeenThereDoneThat
             Debug.Log("[BeenThereDoneThat]: LOADING ORBITCONTROLLER");
         }
 
+        public bool Split(ProtoVessel protoVessel, out ProtoLaunchVehicle launchVehicle, out ProtoPayload payload)
+        {
+            ProtoPartSnapshot payloadSeparator = FindPayloadSeparatorPart(protoVessel.protoPartSnapshots);
+            if (payloadSeparator == null)
+            {
+                Debug.Log("[BeenThereDoneThat]: No payloadseparator found");
+                launchVehicle = null;
+                payload = null;
+                return false;
+            }
+
+            int payloadPartSeparationIndex = payloadSeparator.separationIndex;
+            List<ProtoPartSnapshot> payloadParts = new List<ProtoPartSnapshot>();
+            List<ProtoPartSnapshot> launchVehicleParts = new List<ProtoPartSnapshot>();
+            foreach (ProtoPartSnapshot part in protoVessel.protoPartSnapshots)
+            {
+                if (part.separationIndex >= payloadPartSeparationIndex)
+                {
+                    launchVehicleParts.Add(part);
+                }
+                else
+                {
+                    payloadParts.Add(part);
+                }
+            }
+
+            launchVehicle = new ProtoLaunchVehicle(payloadSeparator, launchVehicleParts);
+            payload = new ProtoPayload(payloadParts);
+            return true;
+        }
+
         public bool Split(List<Part> parts, out LaunchVehicle launchVehicle, out Payload payload)
         { 
             Part payloadSeparator = FindPayloadSeparatorPart(parts);
@@ -63,6 +94,23 @@ namespace BeenThereDoneThat
             launchVehicle = new LaunchVehicle(payloadSeparator, launchVehicleParts);
             payload = new Payload(payloadParts);
             return true;
+        }
+
+        public ProtoPartSnapshot FindPayloadSeparatorPart(List<ProtoPartSnapshot> parts)
+        {
+            foreach (ProtoPartSnapshot part in parts)
+            {
+                ProtoPartModuleSnapshot module = part.FindModule("PayloadSeparatorPart");
+                if (module == null)
+                {
+                    continue;
+                }
+                if (bool.Parse(module.moduleValues.GetValue("isPayloadSeparator")))
+                {
+                    return part;
+                }
+            }
+            return null;
         }
 
         public Part FindPayloadSeparatorPart(List<Part> parts)
