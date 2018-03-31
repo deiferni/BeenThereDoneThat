@@ -23,6 +23,7 @@ namespace BeenThereDoneThat
 
         public void Update()
         {
+            return;
             if (!ApplicationLauncher.Ready || buttonAdded)
             {
                 return;
@@ -56,6 +57,7 @@ namespace BeenThereDoneThat
 
         void OnGUI()
         {
+            return;
             initStyle();
             windowPos = GUILayout.Window(9741, windowPos, OnWindow, "My window", windowStyle);
         }
