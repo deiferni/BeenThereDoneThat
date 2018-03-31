@@ -46,7 +46,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BeenthereDoneThatDisplay.cs" />
-    <Compile Include="BeenThereDoneThat.cs" />
+    <Compile Include="LaunchVehicle.cs" />
+    <Compile Include="Payload.cs" />
+    <Compile Include="QuickLauncher.cs" />
     <Compile Include="PayloadSeparatorPart.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

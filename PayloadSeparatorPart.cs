@@ -25,50 +25,12 @@ namespace BeenThereDoneThat
         [KSPEvent(guiActiveEditor = true, guiName = "Debug: launch vehicle/payload parts")]
         public void DebugParentsChildren()
         {
-            List<Part> parents = new List<Part>();
-            List<Part> children = new List<Part>();
-            int payloadPartSeparationIndex = -1;
+            LaunchVehicle launchVehicle = null;
+            Payload payload = null;
+            QuickLauncher.Instance.Split(EditorLogic.SortedShipList, out launchVehicle, out payload);
 
-            foreach (Part part in EditorLogic.SortedShipList)
-            {
-                foreach (PayloadSeparatorPart module in part.FindModulesImplementing<PayloadSeparatorPart>())
-                {
-                    if (module.isPayloadSeparator)
-                    {
-                        payloadPartSeparationIndex = part.separationIndex;
-                    }
-                }
-            }
-
-            if (payloadPartSeparationIndex < 0)
-            {
-                Debug.Log("[BeenThereDoneThat]: no payload separator found");
-                return;
-            }
-
-            foreach (Part part in EditorLogic.SortedShipList)
-            { 
-                if (part.separationIndex >= payloadPartSeparationIndex)
-                {
-                    children.Add(part);
-                }
-                else
-                {
-                    parents.Add(part);
-                }
-
-                Debug.Log("[BeenThereDoneThat]: parent parts");
-                foreach (Part parent in parents)
-                {
-                    Debug.Log(parent.name);
-                }
-
-                Debug.Log("[BeenThereDoneThat]: child parts");
-                foreach (Part child in children)
-                {
-                    Debug.Log(child.name);
-                }
-            }
+            payload.DebugParts();
+            launchVehicle.DebugParts();
         }
 
         private void SetActive(List<Part> parts)
@@ -90,30 +52,22 @@ namespace BeenThereDoneThat
         [KSPEvent(guiActive = true, guiName = "BeenThereDoneThat: start mission")]
         public void SaveLaunchVehivle()
         {
-            foreach (Part part in vessel.parts)
+            LaunchVehicle launchVehicle = null;
+            Payload payload = null;
+            if (!QuickLauncher.Instance.Split(vessel.parts, out launchVehicle, out payload))
             {
-                foreach (PayloadSeparatorPart module in part.FindModulesImplementing<PayloadSeparatorPart>())
-                {
-                    if (module.isPayloadSeparator)
-                    {
-                        ShipConstruct shipConstruct = new ShipConstruct("Launched vehicle as submodule", "wohooo", part);
-                        ShipConstruction.SaveSubassembly(shipConstruct, "Launched vehicle as submodule");
-
-                        Debug.Log("[BeenThereDoneThat]: Saved launched vessel as submodule");
-
-                        BeenThereDoneThat.Instance.RememberVessel("VesselLaunch.craft");
-                        return;
-                    }
-                }
+                return;
             }
-            Debug.Log("[BeenThereDoneThat]: No payloadseparator found");
+
+            launchVehicle.SaveAsSubmodule();
+            QuickLauncher.Instance.RememberVessel("VesselLaunch.craft");
         }
 
         [KSPEvent(guiActive = true, guiName = "BeenThereDoneThat: end mission")]
         public void RememberOrbit()
         {
             vessel.BackupVessel();
-            BeenThereDoneThat.Instance.RememberVessel("VesselOrbit.craft");
+            QuickLauncher.Instance.RememberVessel("VesselOrbit.craft");
         }
 
         [KSPEvent(guiActive = true, guiName = "BeenThereDoneThat: re-run mission")]
