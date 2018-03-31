@@ -30,7 +30,7 @@ namespace BeenThereDoneThat
                 {
                     if (module.isPayloadSeparator)
                     {
-                        Debug.Log(string.Format("Disabling payload separtor on {0}:{1}", part.name, module.name));
+                        Debug.Log(string.Format("[BeenThereDoneThat]: Disabling payload separtor on {0}:{1}", part.name, module.name));
                         module.isPayloadSeparator = false;
                     }
                 }
@@ -50,14 +50,14 @@ namespace BeenThereDoneThat
                         ShipConstruct shipConstruct = new ShipConstruct("Launched vehicle as submodule", "wohooo", part);
                         ShipConstruction.SaveSubassembly(shipConstruct, "Launched vehicle as submodule");
 
-                        Debug.Log("Saved launched vessel as submodule");
+                        Debug.Log("[BeenThereDoneThat]: Saved launched vessel as submodule");
 
                         BeenThereDoneThat.Instance.RememberVessel("VesselLaunch.craft");
                         return;
                     }
                 }
             }
-            Debug.Log("No payloadseparator found");
+            Debug.Log("[BeenThereDoneThat]: No payloadseparator found");
         }
 
         [KSPEvent(guiActive = true, guiName = "BeenThereDoneThat: end mission")]
@@ -73,7 +73,7 @@ namespace BeenThereDoneThat
             // check if we can do a re-run
             if (!IsPreviouslyUsedLaunchVessel())
             {
-                Debug.Log("Can't re-run mission: launch vessel not equal to previous run");
+                Debug.Log("[BeenThereDoneThat]: Can't re-run mission: launch vessel not equal to previous run");
                 return;
             }
 
@@ -94,7 +94,7 @@ namespace BeenThereDoneThat
             double epoch = double.Parse(orbitNode.GetValue("EPH"));
 
             Debug.Log(
-                string.Format("[OrbitController]: RESTORING ORBIT> sma: {0} ecc: {1} inc: {2} LAN: {3} mna: {4} argPe: {5} epoch: {6}",
+                string.Format("[BeenThereDoneThat]: RESTORING ORBIT> sma: {0} ecc: {1} inc: {2} LAN: {3} mna: {4} argPe: {5} epoch: {6}",
                               sma, ecc, inc, LAN, mna, argPe, epoch));
 
             // hackishly temporarily set planetarium time 
@@ -103,7 +103,7 @@ namespace BeenThereDoneThat
             FlightGlobals.fetch.SetShipOrbit(selBodyIndex, ecc, sma, inc, LAN, argPe, mna, 0);
             // hackishly restore planetarium time
             Planetarium.fetch.time = prevTime;
-            Debug.Log("Put ship into orbit");
+            Debug.Log("[BeenThereDoneThat]: Put ship into orbit");
 
             // restore resource levels
             bool foundProtoSeparator = false;
@@ -140,13 +140,13 @@ namespace BeenThereDoneThat
                 {
                     string resourceName = moduleNode.GetValue("name");
                     double amount = double.Parse(moduleNode.GetValue("amount"));
-                    Debug.Log(string.Format("Found resource {0}: amount: {1}", resourceName, amount));
+                    Debug.Log(string.Format("[BeenThereDoneThat]: Found resource {0}: amount: {1}", resourceName, amount));
                     PartResource partResource = vesselPart.Resources.Get(resourceName);
                     partResource.amount = amount;
                     GameEvents.onPartResourceListChange.Fire(vesselPart);
                 }
             }
-            Debug.Log("Restored resources");
+            Debug.Log("[BeenThereDoneThat]:  Restored resources");
 
             // removing burned stages/parts
             if (protoPartNodes.Length < vessel.parts.Count)
@@ -154,20 +154,20 @@ namespace BeenThereDoneThat
                 int diff = vessel.parts.Count - protoPartNodes.Length;
                 int count = 0;
                 List<Part> toDie = new List<Part>();
-                Debug.Log(string.Format("Removing {0} burned parts below stage {1}", diff, orbitSeparationIndex));
+                Debug.Log(string.Format("[BeenThereDoneThat]: Removing {0} burned parts below stage {1}", diff, orbitSeparationIndex));
 
                 foreach (Part vesselPart in vessel.parts)
                 {
                     if (vesselPart.separationIndex > orbitSeparationIndex)
                     {
-                        Debug.Log(string.Format("Removing part {0}", vesselPart.name));
+                        Debug.Log(string.Format("[BeenThereDoneThat]: Removing part {0}", vesselPart.name));
                         toDie.Add(vesselPart);
                         count++;
                     }
                 }
                 if (count != diff)
                 {
-                    Debug.Log(string.Format("Expected to remove {0} but got {1} parts", diff, count));
+                    Debug.Log(string.Format("[BeenThereDoneThat]: Expected to remove {0} but got {1} parts", diff, count));
                 }
                 else
                 {
@@ -179,9 +179,9 @@ namespace BeenThereDoneThat
             }
             else
             {
-                Debug.Log("No parts to remove");
+                Debug.Log("[BeenThereDoneThat]: No parts to remove");
             }
-            Debug.Log("Wohoooo done!");
+            Debug.Log("[BeenThereDoneThat]: Wohoooo done!");
         }
 
         public bool IsPreviouslyUsedLaunchVessel()
@@ -193,10 +193,10 @@ namespace BeenThereDoneThat
             List<AvailablePart> protoPartInfos = new List<AvailablePart>();
             ConfigNode subModuleRootNode = ConfigNode.Load(text2);
             Dictionary<string, double> protoResources = new Dictionary<string, double>();
-            Debug.Log(string.Format("path {0}", text2));
-            Debug.Log(string.Format("Part laoder is ready: {0}", PartLoader.Instance.IsReady()));
-            Debug.Log(string.Format("amount of loaded parts: {0}", PartLoader.Instance.loadedParts.Count));
-            Debug.Log(string.Format("amount of parts: {0}", PartLoader.Instance.parts.Count));
+            Debug.Log(string.Format("[BeenThereDoneThat]: path {0}", text2));
+            Debug.Log(string.Format("[BeenThereDoneThat]: Part laoder is ready: {0}", PartLoader.Instance.IsReady()));
+            Debug.Log(string.Format("[BeenThereDoneThat]: amount of loaded parts: {0}", PartLoader.Instance.loadedParts.Count));
+            Debug.Log(string.Format("[BeenThereDoneThat]: amount of parts: {0}", PartLoader.Instance.parts.Count));
             foreach (ConfigNode partNode in subModuleRootNode.GetNodes("PART"))
             {
                 if (!foundProtoSeparator)
@@ -220,16 +220,16 @@ namespace BeenThereDoneThat
                 }
 
                 string partname = partNode.GetValue("name");
-                Debug.Log(string.Format("partname: {0}", partname));
+                Debug.Log(string.Format("[BeenThereDoneThat]: partname: {0}", partname));
                 AvailablePart thepart = PartLoader.getPartInfoByName(partname);
-                Debug.Log(string.Format("the part: {0}", thepart));
+                Debug.Log(string.Format("[BeenThereDoneThat]: the part: {0}", thepart));
                 protoPartInfos.Add(thepart);
 
                 foreach (ConfigNode moduleNode in partNode.GetNodes("RESOURCE"))
                 {
                     string resourceName = moduleNode.GetValue("name");
                     double amount = double.Parse(moduleNode.GetValue("amount"));
-                    Debug.Log(string.Format("Found resource {0}: amount: {1}", resourceName, amount));
+                    Debug.Log(string.Format("[BeenThereDoneThat]: Found resource {0}: amount: {1}", resourceName, amount));
 
                     if (!protoResources.ContainsKey(resourceName))
                     {
@@ -240,7 +240,7 @@ namespace BeenThereDoneThat
             }
             foreach (string resourceKey in protoResources.Keys)
             {
-                Debug.Log(string.Format("Total resource {0}: amount: {1}", resourceKey, protoResources[resourceKey]));
+                Debug.Log(string.Format("[BeenThereDoneThat]: Total resource {0}: amount: {1}", resourceKey, protoResources[resourceKey]));
             }
 
             // Find vessel parts and resouces
@@ -263,7 +263,7 @@ namespace BeenThereDoneThat
                 }
                 if (found)
                 {
-                    Debug.Log(string.Format("the part: {0}", part.partInfo.name));
+                    Debug.Log(string.Format("[BeenThereDoneThat]: the part: {0}", part.partInfo.name));
                     partInfos.Add(part.partInfo);
                     foreach (PartResource partResource in part.Resources)
                     {
@@ -278,34 +278,34 @@ namespace BeenThereDoneThat
             }
             foreach (string resourceKey in resources.Keys)
             {
-                Debug.Log(string.Format("Total resource {0}: amount: {1}", resourceKey, resources[resourceKey]));
+                Debug.Log(string.Format("[BeenThereDoneThat]: Total resource {0}: amount: {1}", resourceKey, resources[resourceKey]));
             }
 
             // Compare parts by name and order
-            Debug.Log(string.Format("vessel parts {0}", partInfos.Count));
-            Debug.Log(string.Format("proto vessel parts {0}", protoPartInfos.Count));
+            Debug.Log(string.Format("[BeenThereDoneThat]: vessel parts {0}", partInfos.Count));
+            Debug.Log(string.Format("[BeenThereDoneThat]: proto vessel parts {0}", protoPartInfos.Count));
             if (partInfos.Count != protoPartInfos.Count)
             {
-                Debug.Log("parts are not equal!");
+                Debug.Log("[BeenThereDoneThat]: parts are not equal!");
                 return false;
             }
 
             for (int i = 0; i < partInfos.Count; i++)
             {
-                Debug.Log(string.Format("partInfos part: {0}", partInfos[i].name));
-                Debug.Log(string.Format("protoPartInfos part: {0}", protoPartInfos[i].name));
+                Debug.Log(string.Format("[BeenThereDoneThat]: partInfos part: {0}", partInfos[i].name));
+                Debug.Log(string.Format("[BeenThereDoneThat]: protoPartInfos part: {0}", protoPartInfos[i].name));
                 if (partInfos[i].name != protoPartInfos[i].name)
                 {
-                    Debug.Log(string.Format("parts are not equal at {0}: {1} != {2}", i, partInfos[i].name, protoPartInfos[i].name));
+                    Debug.Log(string.Format("[BeenThereDoneThat]: parts are not equal at {0}: {1} != {2}", i, partInfos[i].name, protoPartInfos[i].name));
                     return false;
                 }
 
             }
-            Debug.Log("parts are equal!");
+            Debug.Log("[BeenThereDoneThat]: parts are equal!");
 
             // Compare resouces by amount
-            Debug.Log(string.Format("vessel resources {0}", resources.Count));
-            Debug.Log(string.Format("proto vessel resources {0}", protoResources.Count));
+            Debug.Log(string.Format("[BeenThereDoneThat]: vessel resources {0}", resources.Count));
+            Debug.Log(string.Format("[BeenThereDoneThat]: proto vessel resources {0}", protoResources.Count));
             if (resources.Count != protoResources.Count)
             {
                 return false;
@@ -314,11 +314,11 @@ namespace BeenThereDoneThat
             {
                 if (resources[resourceKey] != protoResources[resourceKey])
                 {
-                    Debug.Log(string.Format("resource mismatch {0}: {1} != {2}", resourceKey, resources[resourceKey], protoResources[resourceKey]));
+                    Debug.Log(string.Format("[BeenThereDoneThat]: resource mismatch {0}: {1} != {2}", resourceKey, resources[resourceKey], protoResources[resourceKey]));
                     return false;
                 }
             }
-            Debug.Log("resources are equal!");
+            Debug.Log("[BeenThereDoneThat]: resources are equal!");
             return true;
         }
     }

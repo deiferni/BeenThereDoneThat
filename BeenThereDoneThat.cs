@@ -16,18 +16,18 @@ namespace BeenThereDoneThat
 
         public override void OnAwake()
         {
-            Debug.Log("[OrbitController]: AWAKING ORBITCONTROLLER");
+            Debug.Log("[BeenThereDoneThat]: AWAKING ORBITCONTROLLER");
             BeenThereDoneThat.Instance = this;
         }
 
         public override void OnSave(ConfigNode node)
         {
-            Debug.Log("[OrbitController]: SAVING ORBITCONTROLLER");
+            Debug.Log("[BeenThereDoneThat]: SAVING ORBITCONTROLLER");
         }
 
         public override void OnLoad(ConfigNode node)
         {
-            Debug.Log("[OrbitController]: LOADING ORBITCONTROLLER");
+            Debug.Log("[BeenThereDoneThat]: LOADING ORBITCONTROLLER");
         }
 
         public void RememberVessel(string name)
@@ -44,7 +44,7 @@ namespace BeenThereDoneThat
             double argPe = orbit.argumentOfPeriapsis;
 
             Debug.Log(
-                string.Format("[OrbitController]: REMEMBERING ORBIT> sma: {0} ecc: {1} inc: {2} LAN: {3} mna: {4} argPe: {5}",
+                string.Format("[BeenThereDoneThat]: REMEMBERING ORBIT> sma: {0} ecc: {1} inc: {2} LAN: {3} mna: {4} argPe: {5}",
                               sma, ecc, inc, LAN, mna, argPe));
             
 
