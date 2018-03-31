@@ -22,6 +22,55 @@ namespace BeenThereDoneThat
             SetActive(EditorLogic.SortedShipList);
         }
 
+        [KSPEvent(guiActiveEditor = true, guiName = "Debug: launch vehicle/payload parts")]
+        public void DebugParentsChildren()
+        {
+            List<Part> parents = new List<Part>();
+            List<Part> children = new List<Part>();
+            int payloadPartSeparationIndex = -1;
+
+            foreach (Part part in EditorLogic.SortedShipList)
+            {
+                foreach (PayloadSeparatorPart module in part.FindModulesImplementing<PayloadSeparatorPart>())
+                {
+                    if (module.isPayloadSeparator)
+                    {
+                        payloadPartSeparationIndex = part.separationIndex;
+                    }
+                }
+            }
+
+            if (payloadPartSeparationIndex < 0)
+            {
+                Debug.Log("[BeenThereDoneThat]: no payload separator found");
+                return;
+            }
+
+            foreach (Part part in EditorLogic.SortedShipList)
+            { 
+                if (part.separationIndex >= payloadPartSeparationIndex)
+                {
+                    children.Add(part);
+                }
+                else
+                {
+                    parents.Add(part);
+                }
+
+                Debug.Log("[BeenThereDoneThat]: parent parts");
+                foreach (Part parent in parents)
+                {
+                    Debug.Log(parent.name);
+                }
+
+                Debug.Log("[BeenThereDoneThat]: child parts");
+                foreach (Part child in children)
+                {
+                    Debug.Log(child.name);
+                }
+            }
+        }
+
         private void SetActive(List<Part> parts)
         {
             foreach (Part part in parts)
