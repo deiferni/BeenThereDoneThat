@@ -46,8 +46,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BeenthereDoneThatDisplay.cs" />
-    <Compile Include="OrbitController.cs" />
-    <Compile Include="PayloadPart.cs" />
+    <Compile Include="BeenThereDoneThat.cs" />
+    <Compile Include="PayloadSeparatorPart.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -10,13 +10,13 @@ namespace BeenThereDoneThat
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true)]
         public bool isPayloadSeparator;
 
-        [KSPEvent(guiActive = true, guiName = "Set as payload separator")]
+        [KSPEvent(guiActive = true, guiName = "BeenThereDoneThat: Set as payload separator")]
         public void SetPayloadSeparator()
         {
             SetActive(vessel.parts);
         }
 
-        [KSPEvent(guiActiveEditor = true, guiName = "Set as payload separator")]
+        [KSPEvent(guiActiveEditor = true, guiName = "BeenThereDoneThat: Set as payload separator")]
         public void SetEditorPayloadSeparator()
         {
             SetActive(EditorLogic.SortedShipList);
@@ -38,40 +38,6 @@ namespace BeenThereDoneThat
             isPayloadSeparator = true;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Destroy last part")]
-        public void DestroyLastPart()
-        {
-            Part lastPart = vessel.parts[vessel.parts.Count - 1];
-            lastPart.Die();
-        }
-
-        [KSPEvent(guiActiveEditor = true, guiName = "Save launch vehicle submodule")]
-        public void SaveLaunchVehivleSubModule()
-        {
-            List<Part> parts = new List<Part>();
-
-            foreach (Part part in EditorLogic.SortedShipList)
-            {
-                foreach (PayloadSeparatorPart module in part.FindModulesImplementing<PayloadSeparatorPart>())
-                {
-                    if (module.isPayloadSeparator)
-                    {
-
-                        ShipConstruct shipConstruct = new ShipConstruct("My subassembly", "wohooo", part);
-                        int inverseStage = EditorLogic.RootPart.inverseStage;
-                        foreach (Part pt in shipConstruct.parts)
-                        {
-                            pt.inverseStage -= inverseStage;
-                        }
-                        ShipConstruction.SaveSubassembly(shipConstruct, "My subassembly");
-                        return;
-                    }
-                }
-            }
-
-            Debug.Log("No payloadseparator found");
-        }
-
         [KSPEvent(guiActive = true, guiName = "BeenThereDoneThat: start mission")]
         public void SaveLaunchVehivle()
         {
@@ -86,7 +52,7 @@ namespace BeenThereDoneThat
 
                         Debug.Log("Saved launched vessel as submodule");
 
-                        OrbitController.Instance.RememberVessel("VesselLaunch.craft");
+                        BeenThereDoneThat.Instance.RememberVessel("VesselLaunch.craft");
                         return;
                     }
                 }
@@ -98,7 +64,7 @@ namespace BeenThereDoneThat
         public void RememberOrbit()
         {
             vessel.BackupVessel();
-            OrbitController.Instance.RememberVessel("VesselOrbit.craft");
+            BeenThereDoneThat.Instance.RememberVessel("VesselOrbit.craft");
         }
 
         [KSPEvent(guiActive = true, guiName = "BeenThereDoneThat: re-run mission")]
@@ -112,7 +78,7 @@ namespace BeenThereDoneThat
             }
 
             // find orbit information and restore orbit
-            int orbitStage = -1;
+            int orbitSeparationIndex = -1;
             string text = KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/BeenThereDoneThat/";
             string text2 = text + "VesselOrbit.craft";
             ConfigNode subModuleRootNode = ConfigNode.Load(text2);
@@ -162,7 +128,7 @@ namespace BeenThereDoneThat
                     }
                 }
 
-                orbitStage = Math.Max(orbitStage, int.Parse(protoPartNode.GetValue("istg")));
+                orbitSeparationIndex = Math.Max(orbitSeparationIndex, int.Parse(protoPartNode.GetValue("sepI")));
 
                 if (!foundProtoSeparator)
                 {
@@ -188,11 +154,11 @@ namespace BeenThereDoneThat
                 int diff = vessel.parts.Count - protoPartNodes.Length;
                 int count = 0;
                 List<Part> toDie = new List<Part>();
-                Debug.Log(string.Format("Removing {0} burned parts below stage {1}", diff, orbitStage));
+                Debug.Log(string.Format("Removing {0} burned parts below stage {1}", diff, orbitSeparationIndex));
 
                 foreach (Part vesselPart in vessel.parts)
                 {
-                    if (vesselPart.defaultInverseStage > orbitStage)
+                    if (vesselPart.separationIndex > orbitSeparationIndex)
                     {
                         Debug.Log(string.Format("Removing part {0}", vesselPart.name));
                         toDie.Add(vesselPart);
@@ -201,11 +167,10 @@ namespace BeenThereDoneThat
                 }
                 if (count != diff)
                 {
-                    Debug.Log(string.Format("Expected to remote {0} but got {1} parts", diff, count));
+                    Debug.Log(string.Format("Expected to remove {0} but got {1} parts", diff, count));
                 }
                 else
                 {
-                    toDie.Reverse();
                     foreach (Part spent in toDie)
                     {
                         spent.Die();
@@ -355,30 +320,6 @@ namespace BeenThereDoneThat
             }
             Debug.Log("resources are equal!");
             return true;
-        }
-
-        [KSPEvent(guiActive = true, guiName = "Put me into orbit. NOW!")]
-        public void PutMeIntoOrbitNow()
-        {
-            ScreenMessages.PostScreenMessage(
-                "Putting the damn thing into orbit.",
-                5.0f,
-                ScreenMessageStyle.UPPER_CENTER);
-
-            CelestialBody body = FlightGlobals.ActiveVessel.mainBody;
-            int selBodyIndex = FlightGlobals.Bodies.IndexOf(body);
-            double sma = body.minOrbitalDistance * 1.1;
-
-            double ecc = 0;
-            double inc = 0;
-            double LAN = 0;
-            double mna = 0;
-            double argPe = 0;
-            double ObT = 0;
-
-            Debug.Log(string.Format("Setting 'sma' to {0} based on minimal distance {1}", sma, body.minOrbitalDistance));
-
-            FlightGlobals.fetch.SetShipOrbit(selBodyIndex, ecc, sma, inc, LAN, mna, argPe, ObT);
         }
     }
 }
