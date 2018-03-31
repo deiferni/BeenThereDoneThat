@@ -73,8 +73,15 @@ namespace BeenThereDoneThat
         [KSPEvent(guiActive = true, guiName = "BeenThereDoneThat: re-run mission")]
         public void ReRunMission()
         {
+            LaunchVehicle launchVehicle = null;
+            Payload payload = null;
+            if (!QuickLauncher.Instance.Split(vessel.parts, out launchVehicle, out payload))
+            {
+                return;
+            }
+
             // check if we can do a re-run
-            if (!IsPreviouslyUsedLaunchVessel())
+            if (!IsPreviouslyUsedLaunchVessel(launchVehicle))
             {
                 Debug.Log("[BeenThereDoneThat]: Can't re-run mission: launch vessel not equal to previous run");
                 return;
@@ -110,58 +117,40 @@ namespace BeenThereDoneThat
             Planetarium.fetch.time = prevTime;
             Debug.Log("[BeenThereDoneThat]: Put ship into orbit");
 
-            // restore resource levels
-            bool foundProtoSeparator = false;
-            List<AvailablePart> protoPartInfos = new List<AvailablePart>();
-            ConfigNode[] protoPartNodes = subModuleRootNode.GetNodes("PART");
-            for (int i = 0; i < protoPartNodes.Length; i++)
+            ProtoLaunchVehicle protoLaunchVehicle = null;
+            ProtoPayload protoPayload = null;
+            if (!QuickLauncher.Instance.Split(protoVessel, out protoLaunchVehicle, out protoPayload))
             {
-                ConfigNode protoPartNode = protoPartNodes[i];
-                if (!foundProtoSeparator)
+                return;
+            }
+
+            // restore resource levels
+            for (int i = 0; i < protoLaunchVehicle.parts.Count; i++)
+            {
+                ProtoPartSnapshot protoPart = protoLaunchVehicle.parts[i];
+                Part vesselPart = launchVehicle.parts[i];
+                foreach (ProtoPartResourceSnapshot protoResource in protoPart.resources)
                 {
-                    foreach (ConfigNode maybePayloadSeparatorModule in protoPartNode.GetNodes("MODULE"))
-                    {
-                        if (maybePayloadSeparatorModule.GetValue("name") != "PayloadSeparatorPart")
-                        {
-                            continue;
-                        }
-
-                        if (bool.Parse(maybePayloadSeparatorModule.GetValue("isPayloadSeparator")))
-                        {
-                            foundProtoSeparator = true;
-                        }
-                    }
-                }
-
-                orbitSeparationIndex = Math.Max(orbitSeparationIndex, int.Parse(protoPartNode.GetValue("sepI")));
-
-                if (!foundProtoSeparator)
-                {
-                    continue;
-                }
-
-                Part vesselPart = vessel.Parts[i];
-                foreach (ConfigNode moduleNode in protoPartNode.GetNodes("RESOURCE"))
-                {
-                    string resourceName = moduleNode.GetValue("name");
-                    double amount = double.Parse(moduleNode.GetValue("amount"));
+                    string resourceName = protoResource.resourceName;
+                    double amount = protoResource.amount;
                     Debug.Log(string.Format("[BeenThereDoneThat]: Found resource {0}: amount: {1}", resourceName, amount));
                     PartResource partResource = vesselPart.Resources.Get(resourceName);
                     partResource.amount = amount;
                     GameEvents.onPartResourceListChange.Fire(vesselPart);
                 }
+                orbitSeparationIndex = Math.Max(orbitSeparationIndex, protoPart.separationIndex);
             }
             Debug.Log("[BeenThereDoneThat]:  Restored resources");
 
             // removing burned stages/parts
-            if (protoPartNodes.Length < vessel.parts.Count)
+            if (protoLaunchVehicle.parts.Count < launchVehicle.parts.Count)
             {
-                int diff = vessel.parts.Count - protoPartNodes.Length;
+                int diff = launchVehicle.parts.Count - protoLaunchVehicle.parts.Count;
                 int count = 0;
                 List<Part> toDie = new List<Part>();
                 Debug.Log(string.Format("[BeenThereDoneThat]: Removing {0} burned parts below stage {1}", diff, orbitSeparationIndex));
 
-                foreach (Part vesselPart in vessel.parts)
+                foreach (Part vesselPart in launchVehicle.parts)
                 {
                     if (vesselPart.separationIndex > orbitSeparationIndex)
                     {
@@ -189,7 +178,7 @@ namespace BeenThereDoneThat
             Debug.Log("[BeenThereDoneThat]: Wohoooo done!");
         }
 
-        public bool IsPreviouslyUsedLaunchVessel()
+        public bool IsPreviouslyUsedLaunchVessel(LaunchVehicle launchVehicle)
         {
             // Find proto parts and resouces
             string text = KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/BeenThereDoneThat/";
@@ -199,16 +188,16 @@ namespace BeenThereDoneThat
             ConfigNode subModuleRootNode = ConfigNode.Load(text2);
             ProtoVessel protoVessel = new ProtoVessel(subModuleRootNode, HighLogic.CurrentGame);
 
-            ProtoLaunchVehicle launchVehicle = null;
-            ProtoPayload payload = null;
-            if (!QuickLauncher.Instance.Split(protoVessel, out launchVehicle, out payload))
+            ProtoLaunchVehicle protoLaunchVehicle = null;
+            ProtoPayload protoPayload = null;
+            if (!QuickLauncher.Instance.Split(protoVessel, out protoLaunchVehicle, out protoPayload))
             {
                 return false;
             }
 
             Dictionary<string, double> protoResources = new Dictionary<string, double>();
-            launchVehicle.DebugParts();
-            foreach (ProtoPartSnapshot protoPart in launchVehicle.parts)
+            protoLaunchVehicle.DebugParts();
+            foreach (ProtoPartSnapshot protoPart in protoLaunchVehicle.parts)
             {
                 foreach (ProtoPartResourceSnapshot protoResource in protoPart.resources)
                 {
@@ -229,37 +218,19 @@ namespace BeenThereDoneThat
                 Debug.Log(string.Format("[BeenThereDoneThat]: Total resource {0}: amount: {1}", resourceKey, protoResources[resourceKey]));
             }
 
-            // Find vessel parts and resouces
             List<AvailablePart> partInfos = new List<AvailablePart>();
             Dictionary<string, double> resources = new Dictionary<string, double>();
-            // just hope the vessel parts are ordered somehow
-            bool found = false;
-            foreach (Part part in vessel.parts)
+            launchVehicle.DebugParts();
+            foreach (Part part in launchVehicle.parts)
             {
-                if (!found)
+                partInfos.Add(part.partInfo);
+                foreach (PartResource partResource in part.Resources)
                 {
-                    foreach (PayloadSeparatorPart module in part.FindModulesImplementing<PayloadSeparatorPart>())
+                    if (!resources.ContainsKey(partResource.resourceName))
                     {
-                        if (module.isPayloadSeparator)
-                        {
-                            found = true;
-                            break;
-                        }
+                        resources[partResource.resourceName] = 0;
                     }
-                }
-                if (found)
-                {
-                    Debug.Log(string.Format("[BeenThereDoneThat]: the part: {0}", part.partInfo.name));
-                    partInfos.Add(part.partInfo);
-                    foreach (PartResource partResource in part.Resources)
-                    {
-                        if (!resources.ContainsKey(partResource.resourceName))
-                        {
-                            resources[partResource.resourceName] = 0;
-                        }
-                        resources[partResource.resourceName] += partResource.amount;
-
-                    }
+                    resources[partResource.resourceName] += partResource.amount;
                 }
             }
             foreach (string resourceKey in resources.Keys)
