@@ -10,8 +10,8 @@ namespace BeenThereDoneThat
         private ProtoVessel orbitProtoVessel;
         private LaunchVehicle currentLaunchVehicle = null;
         private Payload currentPayload = null;
-        private ProtoLaunchVehicle prevLaunchVehicle = null;
-        private ProtoPayload prevPayload = null;
+        private ProtoLaunchVehicle previousLaunchVehicle = null;
+        private ProtoPayload previousPayload = null;
         private ProtoLaunchVehicle orbitLaunchVehicle = null;
         private ProtoPayload orbitPayload = null;
 
@@ -33,6 +33,13 @@ namespace BeenThereDoneThat
                 Debug.Log("[BeenThereDoneThat]: Can't re-run mission: launch vessel not equal to previous run");
                 return;
             }
+            if (MassExceedsPreviousMass())
+            {
+                Debug.Log("[BeenThereDoneThat]: Can't re-run mission: payload too heavy");
+                currentPayload.DebugParts();
+                previousPayload.DebugParts();
+                return;
+            }
             SetOrbit();
             SetResources();
             RemoveBurnedParts();
@@ -47,7 +54,7 @@ namespace BeenThereDoneThat
             }
 
             // load previously used launch vessel
-            if (!QuickLauncher.Instance.Split(prevlaunchProtoVessel, out prevLaunchVehicle, out prevPayload))
+            if (!QuickLauncher.Instance.Split(prevlaunchProtoVessel, out previousLaunchVehicle, out previousPayload))
             {
                 return false;
             }
@@ -66,9 +73,9 @@ namespace BeenThereDoneThat
             List<AvailablePart> protoPartInfos = new List<AvailablePart>();
             Dictionary<string, double> protoResources = new Dictionary<string, double>();
 
-            prevLaunchVehicle.DebugParts();
+            previousLaunchVehicle.DebugParts();
 
-            foreach (ProtoPartSnapshot protoPart in prevLaunchVehicle.parts)
+            foreach (ProtoPartSnapshot protoPart in previousLaunchVehicle.parts)
             {
                 foreach (ProtoPartResourceSnapshot protoResource in protoPart.resources)
                 {
@@ -148,6 +155,11 @@ namespace BeenThereDoneThat
             }
             Debug.Log("[BeenThereDoneThat]: resources are equal!");
             return true;
+        }
+
+        protected bool MassExceedsPreviousMass()
+        {
+            return previousPayload.getTotalMass() < currentPayload.getTotalMass();
         }
 
         protected void SetOrbit()

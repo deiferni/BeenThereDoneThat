@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace BeenThereDoneThat
@@ -12,6 +13,21 @@ namespace BeenThereDoneThat
             parts = payloadParts;
         }
 
+        public double getTotalMass()
+        {
+            double totalMass = 0;
+            foreach (ProtoPartSnapshot part in parts)
+            {
+                totalMass += part.mass;
+                foreach (ProtoPartResourceSnapshot resource in part.resources)
+                {
+                    PartResourceDefinition resourceInfo = PartResourceLibrary.Instance.GetDefinition(resource.resourceName);
+                    totalMass += resource.amount * resourceInfo.density;
+                }
+            }
+            return Math.Round(totalMass, 3);
+        }
+
         public void DebugParts()
         {
             Debug.Log("[BeenThereDoneThat]: proto payload parts");
@@ -19,6 +35,7 @@ namespace BeenThereDoneThat
             {
                 Debug.Log(part.partName);
             }
+            Debug.Log(string.Format("Total mass: {0}", getTotalMass()));
         }
     }
 }
