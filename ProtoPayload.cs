@@ -9,7 +9,7 @@ namespace BeenThereDoneThat
 
         public ProtoPayload(List<ProtoPartSnapshot> payloadParts)
         {
-            this.parts = payloadParts;
+            parts = payloadParts;
         }
 
         public void DebugParts()

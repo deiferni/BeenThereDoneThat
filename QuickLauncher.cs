@@ -127,33 +127,5 @@ namespace BeenThereDoneThat
             }
             return null;
         }
-
-        public void RememberVessel(string name)
-        {
-            Orbit orbit = FlightGlobals.ActiveVessel.orbit;
-            CelestialBody body = FlightGlobals.ActiveVessel.mainBody;
-
-            int selBodyIndex = FlightGlobals.Bodies.IndexOf(body);
-            double sma = orbit.semiMajorAxis;
-            double ecc = orbit.eccentricity;
-            double inc = orbit.inclination;
-            double LAN = orbit.LAN;
-            double mna = orbit.meanAnomalyAtEpoch;
-            double argPe = orbit.argumentOfPeriapsis;
-
-            Debug.Log(
-                string.Format("[BeenThereDoneThat]: REMEMBERING ORBIT> sma: {0} ecc: {1} inc: {2} LAN: {3} mna: {4} argPe: {5}",
-                              sma, ecc, inc, LAN, mna, argPe));
-            
-
-            string directory = KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/BeenThereDoneThat/";
-            System.IO.Directory.CreateDirectory(directory);
-            string path = System.IO.Path.Combine(directory, name);
-
-            Vessel vessel = FlightGlobals.ActiveVessel;
-            ConfigNode node = new ConfigNode();
-            vessel.protoVessel.Save(node);
-            node.Save(path);
-        }
     }
 }
