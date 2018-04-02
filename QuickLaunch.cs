@@ -74,86 +74,15 @@ namespace BeenThereDoneThat
             Dictionary<string, double> protoResources = new Dictionary<string, double>();
 
             previousLaunchVehicle.DebugParts();
-
-            foreach (ProtoPartSnapshot protoPart in previousLaunchVehicle.parts)
-            {
-                foreach (ProtoPartResourceSnapshot protoResource in protoPart.resources)
-                {
-                    string resourceName = protoResource.resourceName;
-                    double amount = protoResource.amount;
-                    Debug.Log(string.Format("[BeenThereDoneThat]: Found resource {0}: amount: {1}", resourceName, amount));
-
-                    if (!protoResources.ContainsKey(resourceName))
-                    {
-                        protoResources[resourceName] = 0;
-                    }
-                    protoResources[resourceName] += amount;
-                }
-                protoPartInfos.Add(protoPart.partInfo);
-            }
-            foreach (string resourceKey in protoResources.Keys)
-            {
-                Debug.Log(string.Format("[BeenThereDoneThat]: Total resource {0}: amount: {1}", resourceKey, protoResources[resourceKey]));
-            }
-
-            List<AvailablePart> partInfos = new List<AvailablePart>();
-            Dictionary<string, double> resources = new Dictionary<string, double>();
             currentLaunchVehicle.DebugParts();
-            foreach (Part part in currentLaunchVehicle.parts)
-            {
-                partInfos.Add(part.partInfo);
-                foreach (PartResource partResource in part.Resources)
-                {
-                    if (!resources.ContainsKey(partResource.resourceName))
-                    {
-                        resources[partResource.resourceName] = 0;
-                    }
-                    resources[partResource.resourceName] += partResource.amount;
-                }
-            }
-            foreach (string resourceKey in resources.Keys)
-            {
-                Debug.Log(string.Format("[BeenThereDoneThat]: Total resource {0}: amount: {1}", resourceKey, resources[resourceKey]));
-            }
 
-            // Compare parts by name and order
-            Debug.Log(string.Format("[BeenThereDoneThat]: vessel parts {0}", partInfos.Count));
-            Debug.Log(string.Format("[BeenThereDoneThat]: proto vessel parts {0}", protoPartInfos.Count));
-            if (partInfos.Count != protoPartInfos.Count)
+            if (!previousLaunchVehicle.Equals(currentLaunchVehicle))
             {
-                Debug.Log("[BeenThereDoneThat]: parts are not equal!");
+                Debug.Log("[BeenThereDoneThat]: launch vehicles not equal!");
                 return false;
             }
-
-            for (int i = 0; i < partInfos.Count; i++)
-            {
-                Debug.Log(string.Format("[BeenThereDoneThat]: partInfos part: {0}", partInfos[i].name));
-                Debug.Log(string.Format("[BeenThereDoneThat]: protoPartInfos part: {0}", protoPartInfos[i].name));
-                if (partInfos[i].name != protoPartInfos[i].name)
-                {
-                    Debug.Log(string.Format("[BeenThereDoneThat]: parts are not equal at {0}: {1} != {2}", i, partInfos[i].name, protoPartInfos[i].name));
-                    return false;
-                }
-
-            }
-            Debug.Log("[BeenThereDoneThat]: parts are equal!");
-
-            // Compare resouces by amount
-            Debug.Log(string.Format("[BeenThereDoneThat]: vessel resources {0}", resources.Count));
-            Debug.Log(string.Format("[BeenThereDoneThat]: proto vessel resources {0}", protoResources.Count));
-            if (resources.Count != protoResources.Count)
-            {
-                return false;
-            }
-            foreach (string resourceKey in resources.Keys)
-            {
-                if (resources[resourceKey] != protoResources[resourceKey])
-                {
-                    Debug.Log(string.Format("[BeenThereDoneThat]: resource mismatch {0}: {1} != {2}", resourceKey, resources[resourceKey], protoResources[resourceKey]));
-                    return false;
-                }
-            }
-            Debug.Log("[BeenThereDoneThat]: resources are equal!");
+            
+            Debug.Log("[BeenThereDoneThat]: launch vehicles equal!");
             return true;
         }
 

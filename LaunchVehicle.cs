@@ -53,6 +53,16 @@ namespace BeenThereDoneThat
             return hash;
         }
 
+        public bool Equals(LaunchVehicle launchVehicle)
+        {
+            return launchVehicle.GetHashCode() == GetHashCode();
+        }
+
+        public bool Equals(ProtoLaunchVehicle launchVehicle)
+        {
+            return launchVehicle.GetHashCode() == GetHashCode();
+        }
+
         public void SaveAsSubmodule()
         {
             ShipConstruct shipConstruct = new ShipConstruct("Launched vehicle as submodule", "wohooo", separator);

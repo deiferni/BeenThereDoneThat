@@ -113,5 +113,15 @@ namespace BeenThereDoneThat
 
             return hash;
         }
+
+        public bool Equals(LaunchVehicle launchVehicle)
+        {
+            return launchVehicle.GetHashCode() == GetHashCode();
+        }
+
+        public bool Equals(ProtoLaunchVehicle launchVehicle)
+        {
+            return launchVehicle.GetHashCode() == GetHashCode();
+        }
     }
 }
