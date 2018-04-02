@@ -9,6 +9,7 @@ namespace BeenThereDoneThat
         public ProtoPartSnapshot separator;
         public List<ProtoPartSnapshot> parts;
         public int maxSeparationIndex = -1;
+        public Dictionary<string, double> resources;
 
         public ProtoLaunchVehicle(ProtoPartSnapshot payloadSeparator, List<ProtoPartSnapshot> launchVehicleParts)
         {
@@ -18,6 +19,15 @@ namespace BeenThereDoneThat
             foreach (ProtoPartSnapshot part in parts)
             {
                 maxSeparationIndex = Math.Max(maxSeparationIndex, part.separationIndex);
+
+                foreach (ProtoPartResourceSnapshot partResource in part.resources)
+                {
+                    if (!resources.ContainsKey(partResource.resourceName))
+                    {
+                        resources[partResource.resourceName] = 0;
+                    }
+                    resources[partResource.resourceName] += partResource.amount;
+                }
             }
         }
 
@@ -95,15 +105,6 @@ namespace BeenThereDoneThat
             foreach (ProtoPartSnapshot part in parts)
             {
                 hash = hash * 17 + part.partName.GetHashCode();
-
-                foreach (ProtoPartResourceSnapshot partResource in part.resources)
-                {
-                    if (!resources.ContainsKey(partResource.resourceName))
-                    {
-                        resources[partResource.resourceName] = 0;
-                    }
-                    resources[partResource.resourceName] += partResource.amount;
-                }
             }
             foreach (string resourceKey in resources.Keys)
             {

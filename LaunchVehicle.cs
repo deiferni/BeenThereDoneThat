@@ -7,11 +7,25 @@ namespace BeenThereDoneThat
     {
         public List<Part> parts;
         public Part separator;
+        public Dictionary<string, double> resources;
 
         public LaunchVehicle(Part payloadSeparator, List<Part> launchVehicleParts)
         {
             parts = launchVehicleParts;
             separator = payloadSeparator;
+
+            resources = new Dictionary<string, double>();
+            foreach (Part part in parts)
+            {
+                foreach (PartResource partResource in part.Resources)
+                {
+                    if (!resources.ContainsKey(partResource.resourceName))
+                    {
+                        resources[partResource.resourceName] = 0;
+                    }
+                    resources[partResource.resourceName] += partResource.amount;
+                }
+            }
         }
 
         public void DebugParts()
@@ -30,19 +44,9 @@ namespace BeenThereDoneThat
             // https://stackoverflow.com/questions/263400/what-is-the-best-algorithm-for-an-overridden-system-object-gethashcode
             int hash = 13;
 
-            Dictionary<string, double> resources = new Dictionary<string, double>();
             foreach (Part part in parts)
             {
                 hash = hash * 17 + part.partInfo.name.GetHashCode();
-
-                foreach (PartResource partResource in part.Resources)
-                {
-                    if (!resources.ContainsKey(partResource.resourceName))
-                    {
-                        resources[partResource.resourceName] = 0;
-                    }
-                    resources[partResource.resourceName] += partResource.amount;
-                }
             }
             foreach (string resourceKey in resources.Keys)
             {
