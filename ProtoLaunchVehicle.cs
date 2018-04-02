@@ -82,6 +82,36 @@ namespace BeenThereDoneThat
             {
                 Debug.Log(part.partName);
             }
+            Debug.Log(string.Format("hash: {0})", GetHashCode()));
+        }
+
+        public override int GetHashCode()
+        {
+            // blindly following jon skeets advice from:
+            // https://stackoverflow.com/questions/263400/what-is-the-best-algorithm-for-an-overridden-system-object-gethashcode
+            int hash = 13;
+
+            Dictionary<string, double> resources = new Dictionary<string, double>();
+            foreach (ProtoPartSnapshot part in parts)
+            {
+                hash = hash * 17 + part.partName.GetHashCode();
+
+                foreach (ProtoPartResourceSnapshot partResource in part.resources)
+                {
+                    if (!resources.ContainsKey(partResource.resourceName))
+                    {
+                        resources[partResource.resourceName] = 0;
+                    }
+                    resources[partResource.resourceName] += partResource.amount;
+                }
+            }
+            foreach (string resourceKey in resources.Keys)
+            {
+                hash = hash * 17 + resourceKey.GetHashCode();
+                hash = hash * 17 + resources[resourceKey].GetHashCode();
+            }
+
+            return hash;
         }
     }
 }
