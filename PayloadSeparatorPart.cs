@@ -67,7 +67,7 @@ namespace BeenThereDoneThat
         public void RememberOrbit()
         {
             vessel.BackupVessel();
-            QuickLaunchHangar.SaveOrbitVessel(vessel);
+            QuickLaunchHangar.Instance.SaveOrbitVessel(vessel);
         }
 
         [KSPEvent(guiActive = true, guiName = "BeenThereDoneThat: re-run mission")]
