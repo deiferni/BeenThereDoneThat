@@ -6,8 +6,8 @@ namespace BeenThereDoneThat
     [KSPAddon(KSPAddon.Startup.FlightAndEditor, false)]
     public class QuickLaunchHangar : MonoBehaviour
     {
-        public static string ORBITFILENAME = "VesselOrbit.craft";
-        public static string LAUNCHFILENAME = "VesselLaunch.craft";
+        public static string ORBITFILENAME = "VesselOrbit";
+        public static string LAUNCHFILENAME = "VesselLaunch";
 
         private SaveMissionDialog saveMissionDialog;
 
@@ -65,13 +65,20 @@ namespace BeenThereDoneThat
         public static string MakeHangarDirectory()
         {
             string directory = KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/BeenThereDoneThat/";
-            System.IO.Directory.CreateDirectory(directory);
+            Directory.CreateDirectory(directory);
             return directory;
         }
 
         public static string MakeHangarPath(string filename)
         {
-            return System.IO.Path.Combine(MakeHangarDirectory(), filename);
+            filename = filename.Trim() + ".craft";
+            return Path.Combine(MakeHangarDirectory(), filename);
+        }
+
+        public static bool Exists(string filename)
+        {
+            string path = MakeHangarPath(filename);
+            return File.Exists(path);
         }
     }
 }

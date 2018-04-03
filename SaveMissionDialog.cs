@@ -65,12 +65,11 @@ namespace BeenThereDoneThat
 
         public void ShowSaveDialog()
         {          
-            saveFilename = vessel.GetDisplayName();
             MultiOptionDialog dialog = new MultiOptionDialog("Save mission", "Save mission", "Save mission", UISkinManager.GetSkin("MainMenuSkin"),
-                            new DialogGUITextInput(this.saveFilename, false, 64, delegate (string name)
+                            new DialogGUITextInput(saveFilename, string.Empty, false, 64, delegate (string name)
                             {
-                                this.saveFilename = name;
-                                return this.saveFilename;
+                                saveFilename = name;
+                                return saveFilename;
                             }, 24f), new DialogGUIButton("Save", delegate
                             {
                                 this.ConfirmDialog();
@@ -83,14 +82,13 @@ namespace BeenThereDoneThat
 
         public void ConfirmDialog()
         {
-            string filename = this.saveFilename + ".craft";
-            string path = QuickLaunchHangar.MakeHangarPath(filename);
-            if (File.Exists(path))
+            if (QuickLaunchHangar.Exists(saveFilename))
             {
                 this.saveDialog.gameObject.SetActive(false);
                 this.confirmDialog = PopupDialog.SpawnPopupDialog(anchorMin, anchorMax, new MultiOptionDialog("SavegameConfirmation", "Overwrite " + this.saveFilename, "Overwrite", UISkinManager.GetSkin("MainMenuSkin"), new DialogGUIButton("Overwrite", delegate
                 {
                     QuickLaunchHangar.SaveVessel(vessel, filename);
+                    QuickLaunchHangar.SaveVessel(vessel, saveFilename);
                     this.confirmDialog.Dismiss();
                     this.Dismiss();
                 }, true), new DialogGUIButton("Cancel", delegate
@@ -100,7 +98,7 @@ namespace BeenThereDoneThat
                 }, true)), false, null, true, string.Empty);
                 return;
             }
-            if (!this.CheckFilename(this.saveFilename))
+            if (!CheckFilename(saveFilename))
             {
                 this.confirmDialog = PopupDialog.SpawnPopupDialog(anchorMin, anchorMax, new MultiOptionDialog("SavegameInvalidName", "Oh crap", "Oh crap", UISkinManager.GetSkin("MainMenuSkin"), new DialogGUIButton("Oh crap", delegate
                 {
@@ -110,8 +108,8 @@ namespace BeenThereDoneThat
                 return;
             }
 
-            QuickLaunchHangar.SaveVessel(vessel, filename);
             Dismiss();
+            QuickLaunchHangar.SaveVessel(vessel, saveFilename);
         }
 
         private bool CheckFilename(string filename)
