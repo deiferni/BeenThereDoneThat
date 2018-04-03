@@ -5,7 +5,7 @@ namespace BeenThereDoneThat
 {
     class SaveMissionDialog : MonoBehaviour
     {
-        private Callback onDismiss;
+        private Callback onDismissCallback;
         private PopupDialog saveDialog;
         private PopupDialog confirmDialog;
 
@@ -25,12 +25,11 @@ namespace BeenThereDoneThat
         {
             GameObject gameObject = new GameObject("BeenThereDoneThat mission save menu");
             SaveMissionDialog saveMissionDialog = gameObject.AddComponent<SaveMissionDialog>();
-            SaveMissionDialog.Instance = saveMissionDialog;
 
-            saveMissionDialog.onDismiss = onDismissMenu;
+            saveMissionDialog.onDismissCallback = onDismissMenu;
             saveMissionDialog.vessel = vessel;
+            saveMissionDialog.saveFilename = vessel.GetDisplayName();
 
-            saveMissionDialog.ShowSaveDialog();
             return saveMissionDialog;
         }
 
@@ -38,7 +37,12 @@ namespace BeenThereDoneThat
         {
             Instance = this;
             FlightDriver.SetPause(true, true);
-            InputLockManager.SetControlLock("BeenThereDoneThat SaveMissionDialog");
+            InputLockManager.SetControlLock("BeenThereDoneThatSaveMissionDialog");
+        }
+
+        public void Start()
+        {
+            ShowSaveDialog();
         }
 
         private void OnDestroy()
@@ -50,18 +54,38 @@ namespace BeenThereDoneThat
                     Instance = null;
                 }
             }
-            InputLockManager.RemoveControlLock("BeenThereDoneThat SaveMissionDialog");
+            InputLockManager.RemoveControlLock("BeenThereDoneThatSaveMissionDialog");
             FlightDriver.SetPause(false, true);
         }
 
         private void Update()
         {
-            if (saveDialog != null)
+            if (Input.GetKeyUp(KeyCode.Escape))
             {
-                return;
+                if (confirmDialog != null)
+                {
+                    DismissConfirmDialog();
+                }
+                else
+                {
+                    DismissSaveDialog();
+                }
             }
+            PreventUnpause();
         }
 
+        private void LateUpdate()
+        {
+            PreventUnpause();
+        }
+
+        private void PreventUnpause()
+        {
+            if (saveDialog != null && Input.GetKeyUp(KeyCode.Escape) && !FlightDriver.Pause)
+            {
+                FlightDriver.SetPause(true, true);
+            }
+        }
 
         public void ShowSaveDialog()
         {          
@@ -72,44 +96,42 @@ namespace BeenThereDoneThat
                                 return saveFilename;
                             }, 24f), new DialogGUIButton("Save", delegate
                             {
-                                this.ConfirmDialog();
+                                ConfirmDialog();
                             }, false), new DialogGUIButton("Cancel", delegate
                             {
-                                this.Dismiss();
+                                DismissSaveDialog();
                             }, true));
-            this.saveDialog = PopupDialog.SpawnPopupDialog(anchorMin, anchorMax, dialog, false, null, true, string.Empty);
+            saveDialog = PopupDialog.SpawnPopupDialog(anchorMin, anchorMax, dialog, false, null, true, string.Empty);
         }
 
         public void ConfirmDialog()
         {
             if (QuickLaunchHangar.Exists(saveFilename))
             {
-                this.saveDialog.gameObject.SetActive(false);
-                this.confirmDialog = PopupDialog.SpawnPopupDialog(anchorMin, anchorMax, new MultiOptionDialog("SavegameConfirmation", "Overwrite " + this.saveFilename, "Overwrite", UISkinManager.GetSkin("MainMenuSkin"), new DialogGUIButton("Overwrite", delegate
+                saveDialog.gameObject.SetActive(false);
+                confirmDialog = PopupDialog.SpawnPopupDialog(anchorMin, anchorMax, new MultiOptionDialog("SavegameConfirmation", "Overwrite " + saveFilename, "Overwrite", UISkinManager.GetSkin("MainMenuSkin"), new DialogGUIButton("Overwrite", delegate
                 {
-                    QuickLaunchHangar.SaveVessel(vessel, filename);
                     QuickLaunchHangar.SaveVessel(vessel, saveFilename);
-                    this.confirmDialog.Dismiss();
-                    this.Dismiss();
+                    DismissConfirmDialog();
+                    DismissSaveDialog();
                 }, true), new DialogGUIButton("Cancel", delegate
                 {
-                    this.confirmDialog.Dismiss();
-                    this.saveDialog.gameObject.SetActive(true);
+                    DismissConfirmDialog();
                 }, true)), false, null, true, string.Empty);
                 return;
             }
             if (!CheckFilename(saveFilename))
             {
-                this.confirmDialog = PopupDialog.SpawnPopupDialog(anchorMin, anchorMax, new MultiOptionDialog("SavegameInvalidName", "Oh crap", "Oh crap", UISkinManager.GetSkin("MainMenuSkin"), new DialogGUIButton("Oh crap", delegate
+                saveDialog.gameObject.SetActive(false);
+                confirmDialog = PopupDialog.SpawnPopupDialog(anchorMin, anchorMax, new MultiOptionDialog("SavegameInvalidName", "Oh crap", "Invalid Filename!", UISkinManager.GetSkin("MainMenuSkin"), new DialogGUIButton("Oh crap", delegate
                 {
-                    this.confirmDialog.Dismiss();
-                    this.saveDialog.gameObject.SetActive(true);
+                    DismissConfirmDialog();
                 }, true)), false, null, true, string.Empty);
                 return;
             }
 
-            Dismiss();
             QuickLaunchHangar.SaveVessel(vessel, saveFilename);
+            DismissSaveDialog();
         }
 
         private bool CheckFilename(string filename)
@@ -125,14 +147,25 @@ namespace BeenThereDoneThat
             return true;
         }
 
-        public void Dismiss()
+        public void DismissSaveDialog()
         {
-            onDismiss();
             if (saveDialog != null)
             {
                 saveDialog.Dismiss();
+                saveDialog = null;
             }
+            onDismissCallback();
             Destroy(base.gameObject);
+        }
+
+        public void DismissConfirmDialog()
+        {
+            confirmDialog.Dismiss();
+            confirmDialog = null;
+            if (saveDialog != null)
+            {
+                saveDialog.gameObject.SetActive(true);
+            }
         }
     }
 }
