@@ -16,6 +16,7 @@ namespace BeenThereDoneThat
             separator = payloadSeparator;
             parts = launchVehicleParts;
 
+            resources = new Dictionary<string, double>();
             foreach (ProtoPartSnapshot part in parts)
             {
                 maxSeparationIndex = Math.Max(maxSeparationIndex, part.separationIndex);
@@ -106,7 +107,6 @@ namespace BeenThereDoneThat
             // https://stackoverflow.com/questions/263400/what-is-the-best-algorithm-for-an-overridden-system-object-gethashcode
             int hash = 13;
 
-            Dictionary<string, double> resources = new Dictionary<string, double>();
             foreach (ProtoPartSnapshot part in parts)
             {
                 hash = hash * 17 + part.partName.GetHashCode();
