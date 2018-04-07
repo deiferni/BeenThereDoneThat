@@ -35,6 +35,11 @@ namespace BeenThereDoneThat
             {
                 Debug.Log(part.name);
             }
+            foreach (string resourceKey in resources.Keys)
+            {
+                double amount = resources[resourceKey].GetHashCode();
+                Debug.Log(string.Format("{0}: {1})", resourceKey, amount));
+            }
             Debug.Log(string.Format("hash: {0})", GetHashCode()));
         }
 
