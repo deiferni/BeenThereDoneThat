@@ -61,6 +61,9 @@ namespace BeenThereDoneThat
                 return;
             }
             launchVehicle.SaveAsSubmodule();
+
+            QuickLaunchMissionTracker tracker = vessel.GetComponent<QuickLaunchMissionTracker>();
+            tracker.SetActive();
         }
 
         [KSPEvent(guiActive = true, guiName = "BeenThereDoneThat: end mission")]
