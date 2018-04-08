@@ -40,31 +40,38 @@ namespace BeenThereDoneThat
             string[] launchVehicleDirectories = Directory.GetDirectories(directory);
             foreach (string launchVehiceDirectory in launchVehicleDirectories)
             {
-                string filename = Path.Combine(launchVehiceDirectory, LAUNCHFILENAME + ".craft");
+                string launchVehicleFile = Path.Combine(launchVehiceDirectory, LAUNCHFILENAME + ".craft");
                 int key;
-                if (File.Exists(filename))
+                if (!File.Exists(launchVehicleFile))
                 {
-                    ConfigNode prevLaunchRootNode = ConfigNode.Load(filename);
-                    ProtoVessel prevlaunchProtoVessel = new ProtoVessel(prevLaunchRootNode, HighLogic.CurrentGame);
-                    ProtoLaunchVehicle previousLaunchVehicle = null;
-                    ProtoPayload previousPayload = null;
-                    if (QuickLauncher.Instance.Split(prevlaunchProtoVessel, out previousLaunchVehicle, out previousPayload))
-                    {
-                        prevLaunchVessels[previousLaunchVehicle.GetHashCode()] = prevlaunchProtoVessel;
-                        key = previousLaunchVehicle.GetHashCode();
+                    continue;
+                }
+                ConfigNode prevLaunchRootNode = ConfigNode.Load(launchVehicleFile);
+                ProtoVessel prevlaunchProtoVessel = new ProtoVessel(prevLaunchRootNode, HighLogic.CurrentGame);
+                ProtoLaunchVehicle previousLaunchVehicle = null;
+                ProtoPayload previousPayload = null;
+                if (!QuickLauncher.Instance.Split(prevlaunchProtoVessel, out previousLaunchVehicle, out previousPayload))
+                {
+                    continue;
+                }
+                prevLaunchVessels[previousLaunchVehicle.GetHashCode()] = prevlaunchProtoVessel;
+                key = previousLaunchVehicle.GetHashCode();
 
-                        filename = Path.Combine(launchVehiceDirectory, ORBITFILENAME + ".craft");
-                        if (File.Exists(filename))
-                        {
-                            ConfigNode orbitRootNode = ConfigNode.Load(filename);
-                            ProtoVessel orbitProtoVessel = new ProtoVessel(orbitRootNode, HighLogic.CurrentGame);
-                            ProtoLaunchVehicle orbitLaunchVehicle = null;
-                            ProtoPayload orbitPayload = null;
-                            if (QuickLauncher.Instance.Split(orbitProtoVessel, out orbitLaunchVehicle, out orbitPayload))
-                            {
-                                orbitVessels[key] = orbitProtoVessel;
-                            }
-                        }
+                string missionsPath = Path.Combine(launchVehiceDirectory, "Missions");
+                if (!Directory.Exists(missionsPath))
+                {
+                    continue;
+                }
+                foreach (string missionFile in Directory.GetFiles(missionsPath))
+                {
+                    ConfigNode orbitRootNode = ConfigNode.Load(missionFile);
+                    ProtoVessel orbitProtoVessel = new ProtoVessel(orbitRootNode, HighLogic.CurrentGame);
+                    ProtoLaunchVehicle orbitLaunchVehicle = null;
+                    ProtoPayload orbitPayload = null;
+                    if (QuickLauncher.Instance.Split(orbitProtoVessel, out orbitLaunchVehicle, out orbitPayload))
+                    {
+                        // XXX this overwrites missions and just keep the last
+                        orbitVessels[key] = orbitProtoVessel;
                     }
                 }
             }
