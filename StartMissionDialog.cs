@@ -109,7 +109,7 @@ namespace BeenThereDoneThat
 
         public void ConfirmDialog()
         {
-            if (QuickLaunchHangar.Instance.ContainsLaunchVehicleDirectory(launchVehicleName))
+            if (QuickLaunchHangar.Instance.ContainsLaunchVehicle(launchVehicleName))
             {
                 saveDialog.gameObject.SetActive(false);
                 confirmDialog = PopupDialog.SpawnPopupDialog(anchorMin, anchorMax, new MultiOptionDialog("SavegameConfirmation", "Overwrite " + launchVehicleName, "Overwrite", UISkinManager.GetSkin("MainMenuSkin"), new DialogGUIButton("Overwrite", delegate
@@ -139,9 +139,9 @@ namespace BeenThereDoneThat
 
         private void OnStartConfirmed()
         {
-            QuickLaunchHangar.Instance.SaveVessel(vessel, launchVehicleName, QuickLaunchHangar.LAUNCHFILENAME);
+            QuickLaunchHangar.Instance.SaveLaunchVessel(vessel, launchVehicleName);
             launchVehicle.SaveAsSubmodule(launchVehicleName);
-            tracker.startTracking(launchVehicleName);
+            tracker.StartTracking(launchVehicleName);
         }
 
         private bool CheckFilename(string filename)

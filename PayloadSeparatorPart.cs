@@ -68,7 +68,7 @@ namespace BeenThereDoneThat
                 return;
             }
 
-            QuickLaunchHangar.Instance.SaveLaunchVessel(vessel, launchVehicle, tracker);
+            QuickLaunchHangar.Instance.OnSaveLaunchVessel(vessel, launchVehicle, tracker);
         }
 
         [KSPEvent(guiActive = true, guiName = "BeenThereDoneThat: end mission")]
@@ -82,7 +82,7 @@ namespace BeenThereDoneThat
                 return;
             }
 
-            QuickLaunchHangar.Instance.SaveOrbitVessel(vessel, tracker.launchVehicleName);
+            QuickLaunchHangar.Instance.OnSaveOrbitVessel(vessel, tracker.launchVehicleName);
         }
 
         [KSPEvent(guiActive = true, guiName = "BeenThereDoneThat: re-run mission")]

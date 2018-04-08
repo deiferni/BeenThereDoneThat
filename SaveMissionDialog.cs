@@ -9,7 +9,7 @@ namespace BeenThereDoneThat
         private PopupDialog confirmDialog;
 
         private string launchVehicleName;
-        private string saveFilename;
+        private string missionName;
         private Vessel vessel;
 
         private static Vector2 anchorMin = new Vector2(0.5f, 0.5f);
@@ -29,7 +29,7 @@ namespace BeenThereDoneThat
             saveMissionDialog.onDismissCallback = onDismissMenu;
             saveMissionDialog.launchVehicleName = launchVehicleName;
             saveMissionDialog.vessel = vessel;
-            saveMissionDialog.saveFilename = vessel.GetDisplayName();
+            saveMissionDialog.missionName = vessel.GetDisplayName();
 
             return saveMissionDialog;
         }
@@ -91,10 +91,10 @@ namespace BeenThereDoneThat
         public void ShowSaveDialog()
         {          
             MultiOptionDialog dialog = new MultiOptionDialog("Save mission", "Save mission", "Save mission", UISkinManager.GetSkin("MainMenuSkin"),
-                            new DialogGUITextInput(saveFilename, string.Empty, false, 64, delegate (string name)
+                            new DialogGUITextInput(missionName, string.Empty, false, 64, delegate (string name)
                             {
-                                saveFilename = name;
-                                return saveFilename;
+                                missionName = name;
+                                return missionName;
                             }, 24f), new DialogGUIButton("Save", delegate
                             {
                                 ConfirmDialog();
@@ -107,10 +107,10 @@ namespace BeenThereDoneThat
 
         public void ConfirmDialog()
         {
-            if (QuickLaunchHangar.Instance.Exists(launchVehicleName, saveFilename))
+            if (QuickLaunchHangar.Instance.ContainsMissionVehicle(launchVehicleName, missionName))
             {
                 saveDialog.gameObject.SetActive(false);
-                confirmDialog = PopupDialog.SpawnPopupDialog(anchorMin, anchorMax, new MultiOptionDialog("SavegameConfirmation", "Overwrite " + saveFilename, "Overwrite", UISkinManager.GetSkin("MainMenuSkin"), new DialogGUIButton("Overwrite", delegate
+                confirmDialog = PopupDialog.SpawnPopupDialog(anchorMin, anchorMax, new MultiOptionDialog("SavegameConfirmation", "Overwrite " + missionName, "Overwrite", UISkinManager.GetSkin("MainMenuSkin"), new DialogGUIButton("Overwrite", delegate
                 {
                     OnSaveConfirmed();
                     DismissConfirmDialog();
@@ -121,7 +121,7 @@ namespace BeenThereDoneThat
                 }, true)), false, null, true, string.Empty);
                 return;
             }
-            if (!CheckFilename(saveFilename))
+            if (!CheckFilename(missionName))
             {
                 saveDialog.gameObject.SetActive(false);
                 confirmDialog = PopupDialog.SpawnPopupDialog(anchorMin, anchorMax, new MultiOptionDialog("SavegameInvalidName", "Oh crap", "Invalid Filename!", UISkinManager.GetSkin("MainMenuSkin"), new DialogGUIButton("Oh crap", delegate
@@ -137,7 +137,7 @@ namespace BeenThereDoneThat
 
         private void OnSaveConfirmed()
         {
-            QuickLaunchHangar.Instance.SaveVessel(vessel, launchVehicleName, saveFilename);
+            QuickLaunchHangar.Instance.SaveOrbitVessel(vessel, launchVehicleName, missionName);
         }
 
         private bool CheckFilename(string filename)

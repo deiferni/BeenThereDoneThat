@@ -32,7 +32,11 @@ namespace BeenThereDoneThat
             prevLaunchVessels = new Dictionary<int, ProtoVessel>();
             orbitVessels = new Dictionary<int, ProtoVessel>();
 
-            string directory = GetLaunchVehicleDiretoryPath();
+            string directory = GetHangarPath();
+            if (!Directory.Exists(directory))
+            {
+                return;
+            }
             string[] launchVehicleDirectories = Directory.GetDirectories(directory);
             foreach (string launchVehiceDirectory in launchVehicleDirectories)
             {
@@ -66,7 +70,7 @@ namespace BeenThereDoneThat
             }
         }
 
-        public void SaveOrbitVessel(Vessel vessel, string launchVehicleName)
+        public void OnSaveOrbitVessel(Vessel vessel, string launchVehicleName)
         {
             if (vessel.situation != Vessel.Situations.ORBITING)
             {
@@ -81,7 +85,7 @@ namespace BeenThereDoneThat
             saveMissionDialog = null;
         }
 
-        public void SaveLaunchVessel(Vessel vessel, LaunchVehicle launchVehicle, QuickLaunchMissionTracker tracker)
+        public void OnSaveLaunchVessel(Vessel vessel, LaunchVehicle launchVehicle, QuickLaunchMissionTracker tracker)
         {
             if (vessel.situation != Vessel.Situations.PRELAUNCH)
             {
@@ -131,56 +135,66 @@ namespace BeenThereDoneThat
             return prevLaunchVessels[key];
         }
 
-        public void SaveVessel(Vessel vessel, string launchVehicleName, string filename)
+        public bool ContainsMissionVehicle(string launchVehicleName, string missionName)
         {
-            ConfigNode node = new ConfigNode();
-            vessel.protoVessel.Save(node);
-            node.Save(MakeHangarPath(launchVehicleName, filename));
+            return File.Exists(GetCraftPath(GetMissionsPath(launchVehicleName), missionName));
         }
 
-        public string GetLaunchVehicleDiretoryPath()
+        public bool ContainsLaunchVehicle(string launchVehicleName)
         {
-            string[] pathElements = new string[]
-            {
-                "saves",
-                HighLogic.SaveFolder,
-                "BeenThereDoneThat",
-                "Missions",
-            };
-            string directory = KSPUtil.ApplicationRootPath;
-            foreach (string pathElement in pathElements)
-            {
-                directory = Path.Combine(directory, pathElement);
-            }
-            return directory;
+            return Directory.Exists(GetLaunchVehiclePath(launchVehicleName));
         }
 
-        public string MakeLaunchVehicleDirectory(string launchVehicleName)
+        public void SaveLaunchVessel(Vessel vessel, string launchVehicleName)
         {
-            string directory = Path.Combine(GetLaunchVehicleDiretoryPath(), launchVehicleName);
+            SaveVessel(vessel, GetLaunchVehiclePath(launchVehicleName), LAUNCHFILENAME);
+        }
+
+        public void SaveOrbitVessel(Vessel vessel, string launchVehicleName, string missionName)
+        {
+            SaveVessel(vessel, GetMissionsPath(launchVehicleName), missionName);
+        }
+
+        private void SaveVessel(Vessel vessel, string directory, string filename)
+        {
             if (!Directory.Exists(directory))
             {
                 Directory.CreateDirectory(directory);
             }
-            return directory;
+            string path = GetCraftPath(directory, filename);
+            ConfigNode node = new ConfigNode();
+            vessel.protoVessel.Save(node);
+            node.Save(path);
         }
 
-        public string MakeHangarPath(string launchVehicleName, string filename)
+        private string GetHangarPath()
         {
-            filename = filename.Trim() + ".craft";
-            return Path.Combine(MakeLaunchVehicleDirectory(launchVehicleName), filename);
+            return CombinePaths(KSPUtil.ApplicationRootPath, "saves", HighLogic.SaveFolder, "BeenThereDoneThat", "Hangar");
         }
 
-        public bool Exists(string launchVehicleName, string filename)
+        private string GetLaunchVehiclePath(string launchVehicleName)
         {
-            string path = MakeHangarPath(launchVehicleName, filename);
-            return File.Exists(path);
+            return CombinePaths(GetHangarPath(), launchVehicleName);
         }
 
-        public bool ContainsLaunchVehicleDirectory(string launchVehicleName)
+        private string GetMissionsPath(string launchVehicleName)
         {
-            string directory = Path.Combine(GetLaunchVehicleDiretoryPath(), launchVehicleName);
-            return Directory.Exists(directory);
+            return CombinePaths(GetLaunchVehiclePath(launchVehicleName), "Missions");
+        }
+
+        private string GetCraftPath(string directory, string craftName)
+        {
+            return Path.Combine(directory, craftName.Trim() + ".craft");
+        }
+
+        private string CombinePaths(params string[] pathElements)
+        {
+            string path = string.Empty;
+            foreach (string pathElement in pathElements)
+            {
+                path = Path.Combine(path, pathElement);
+            }
+            return path;
         }
     }
 }

@@ -8,7 +8,7 @@
         [KSPField(isPersistant = true)]
         public string launchVehicleName = string.Empty;
 
-        public void startTracking(string name)
+        public void StartTracking(string name)
         {
             isTracking = true;
             launchVehicleName = name;
