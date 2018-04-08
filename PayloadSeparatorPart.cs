@@ -54,7 +54,6 @@ namespace BeenThereDoneThat
             vessel.BackupVessel();
 
             QuickLaunchMissionTracker tracker = vessel.GetComponent<QuickLaunchMissionTracker>();
-            string launchVehicleName = vessel.name;
             LaunchVehicle launchVehicle = null;
             Payload payload = null;
 
@@ -69,9 +68,7 @@ namespace BeenThereDoneThat
                 return;
             }
 
-            launchVehicle.SaveAsSubmodule(launchVehicleName);
-            QuickLaunchHangar.Instance.SaveLaunchVessel(vessel, launchVehicleName);
-            tracker.startTracking(launchVehicleName);
+            QuickLaunchHangar.Instance.SaveLaunchVessel(vessel, launchVehicle, tracker);
         }
 
         [KSPEvent(guiActive = true, guiName = "BeenThereDoneThat: end mission")]

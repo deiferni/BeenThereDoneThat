@@ -1,6 +1,6 @@
 ﻿namespace BeenThereDoneThat
 {
-    class QuickLaunchMissionTracker : VesselModule
+    public class QuickLaunchMissionTracker : VesselModule
     {
         [KSPField(isPersistant = true)]
         public bool isTracking = false;

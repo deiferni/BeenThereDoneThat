@@ -11,6 +11,7 @@ namespace BeenThereDoneThat
         public static string LAUNCHFILENAME = "VesselLaunch";
 
         private SaveMissionDialog saveMissionDialog;
+        private StartMissionDialog startMissionDialog;
         private Dictionary<int, ProtoVessel> prevLaunchVessels;
         private Dictionary<int, ProtoVessel> orbitVessels;
 
@@ -65,11 +66,6 @@ namespace BeenThereDoneThat
             }
         }
 
-        public void OnSaveMissionDialogDismiss()
-        {
-            saveMissionDialog = null;
-        }
-
         public void SaveOrbitVessel(Vessel vessel, string launchVehicleName)
         {
             if (vessel.situation != Vessel.Situations.ORBITING)
@@ -77,8 +73,27 @@ namespace BeenThereDoneThat
                 ScreenMessages.PostScreenMessage("Can't save yet, must be orbiting!", 4, ScreenMessageStyle.UPPER_CENTER);
                 return;
             }
-
             saveMissionDialog = SaveMissionDialog.Create(OnSaveMissionDialogDismiss, launchVehicleName, vessel);
+        }
+
+        public void OnSaveMissionDialogDismiss()
+        {
+            saveMissionDialog = null;
+        }
+
+        public void SaveLaunchVessel(Vessel vessel, LaunchVehicle launchVehicle, QuickLaunchMissionTracker tracker)
+        {
+            if (vessel.situation != Vessel.Situations.PRELAUNCH)
+            {
+                ScreenMessages.PostScreenMessage("Can't start, must be pre-launch!", 4, ScreenMessageStyle.UPPER_CENTER);
+                return;
+            }
+            startMissionDialog = StartMissionDialog.Create(OnStartMissionDialogDismiss, vessel, launchVehicle, tracker);
+        }
+
+        public void OnStartMissionDialogDismiss()
+        {
+            startMissionDialog = null;
         }
 
         public ProtoVessel LoadOrbitProtoVessel(Vessel vessel)
@@ -114,11 +129,6 @@ namespace BeenThereDoneThat
             }
 
             return prevLaunchVessels[key];
-        }
-
-        public void SaveLaunchVessel(Vessel vessel, string launchVehicleName)
-        {
-            SaveVessel(vessel, launchVehicleName, LAUNCHFILENAME);
         }
 
         public void SaveVessel(Vessel vessel, string launchVehicleName, string filename)
@@ -165,6 +175,12 @@ namespace BeenThereDoneThat
         {
             string path = MakeHangarPath(launchVehicleName, filename);
             return File.Exists(path);
+        }
+
+        public bool ContainsLaunchVehicleDirectory(string launchVehicleName)
+        {
+            string directory = Path.Combine(GetLaunchVehicleDiretoryPath(), launchVehicleName);
+            return Directory.Exists(directory);
         }
     }
 }

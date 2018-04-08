@@ -2,43 +2,45 @@
 
 namespace BeenThereDoneThat
 {
-    class SaveMissionDialog : MonoBehaviour
+    class StartMissionDialog : MonoBehaviour
     {
         private Callback onDismissCallback;
         private PopupDialog saveDialog;
         private PopupDialog confirmDialog;
 
         private string launchVehicleName;
-        private string saveFilename;
         private Vessel vessel;
+        private LaunchVehicle launchVehicle;
+        private QuickLaunchMissionTracker tracker;
 
         private static Vector2 anchorMin = new Vector2(0.5f, 0.5f);
         private static Vector2 anchorMax = new Vector2(0.5f, 0.5f);
 
-        public static SaveMissionDialog Instance
+        public static StartMissionDialog Instance
         {
             get;
             private set;
         }
 
-        public static SaveMissionDialog Create(Callback onDismissMenu, string launchVehicleName, Vessel vessel)
+        public static StartMissionDialog Create(Callback onDismissMenu, Vessel vessel, LaunchVehicle launchVehicle, QuickLaunchMissionTracker tracker)
         {
-            GameObject gameObject = new GameObject("BeenThereDoneThat mission save menu");
-            SaveMissionDialog saveMissionDialog = gameObject.AddComponent<SaveMissionDialog>();
+            GameObject gameObject = new GameObject("BeenThereDoneThat mission start menu");
+            StartMissionDialog startMissionDialog = gameObject.AddComponent<StartMissionDialog>();
 
-            saveMissionDialog.onDismissCallback = onDismissMenu;
-            saveMissionDialog.launchVehicleName = launchVehicleName;
-            saveMissionDialog.vessel = vessel;
-            saveMissionDialog.saveFilename = vessel.GetDisplayName();
+            startMissionDialog.onDismissCallback = onDismissMenu;
+            startMissionDialog.launchVehicleName = vessel.GetDisplayName();
+            startMissionDialog.vessel = vessel;
+            startMissionDialog.launchVehicle = launchVehicle;
+            startMissionDialog.tracker = tracker;
 
-            return saveMissionDialog;
+            return startMissionDialog;
         }
 
         public void Awake()
         {
             Instance = this;
             FlightDriver.SetPause(true, true);
-            InputLockManager.SetControlLock("BeenThereDoneThatSaveMissionDialog");
+            InputLockManager.SetControlLock("BeenThereDoneThatStartMissionDialog");
         }
 
         public void Start()
@@ -55,7 +57,7 @@ namespace BeenThereDoneThat
                     Instance = null;
                 }
             }
-            InputLockManager.RemoveControlLock("BeenThereDoneThatSaveMissionDialog");
+            InputLockManager.RemoveControlLock("BeenThereDoneThatStartMissionDialog");
             FlightDriver.SetPause(false, true);
         }
 
@@ -89,12 +91,12 @@ namespace BeenThereDoneThat
         }
 
         public void ShowSaveDialog()
-        {          
-            MultiOptionDialog dialog = new MultiOptionDialog("Save mission", "Save mission", "Save mission", UISkinManager.GetSkin("MainMenuSkin"),
-                            new DialogGUITextInput(saveFilename, string.Empty, false, 64, delegate (string name)
+        {
+            MultiOptionDialog dialog = new MultiOptionDialog("Start mission", "Start mission", "Start mission", UISkinManager.GetSkin("MainMenuSkin"),
+                            new DialogGUITextInput(launchVehicleName, string.Empty, false, 64, delegate (string name)
                             {
-                                saveFilename = name;
-                                return saveFilename;
+                                launchVehicleName = name;
+                                return launchVehicleName;
                             }, 24f), new DialogGUIButton("Save", delegate
                             {
                                 ConfirmDialog();
@@ -107,12 +109,12 @@ namespace BeenThereDoneThat
 
         public void ConfirmDialog()
         {
-            if (QuickLaunchHangar.Instance.Exists(launchVehicleName, saveFilename))
+            if (QuickLaunchHangar.Instance.ContainsLaunchVehicleDirectory(launchVehicleName))
             {
                 saveDialog.gameObject.SetActive(false);
-                confirmDialog = PopupDialog.SpawnPopupDialog(anchorMin, anchorMax, new MultiOptionDialog("SavegameConfirmation", "Overwrite " + saveFilename, "Overwrite", UISkinManager.GetSkin("MainMenuSkin"), new DialogGUIButton("Overwrite", delegate
+                confirmDialog = PopupDialog.SpawnPopupDialog(anchorMin, anchorMax, new MultiOptionDialog("SavegameConfirmation", "Overwrite " + launchVehicleName, "Overwrite", UISkinManager.GetSkin("MainMenuSkin"), new DialogGUIButton("Overwrite", delegate
                 {
-                    OnSaveConfirmed();
+                    OnStartConfirmed();
                     DismissConfirmDialog();
                     DismissSaveDialog();
                 }, true), new DialogGUIButton("Cancel", delegate
@@ -121,7 +123,7 @@ namespace BeenThereDoneThat
                 }, true)), false, null, true, string.Empty);
                 return;
             }
-            if (!CheckFilename(saveFilename))
+            if (!CheckFilename(launchVehicleName))
             {
                 saveDialog.gameObject.SetActive(false);
                 confirmDialog = PopupDialog.SpawnPopupDialog(anchorMin, anchorMax, new MultiOptionDialog("SavegameInvalidName", "Oh crap", "Invalid Filename!", UISkinManager.GetSkin("MainMenuSkin"), new DialogGUIButton("Oh crap", delegate
@@ -131,13 +133,15 @@ namespace BeenThereDoneThat
                 return;
             }
 
-            OnSaveConfirmed();
+            OnStartConfirmed();
             DismissSaveDialog();
         }
 
-        private void OnSaveConfirmed()
+        private void OnStartConfirmed()
         {
-            QuickLaunchHangar.Instance.SaveVessel(vessel, launchVehicleName, saveFilename);
+            QuickLaunchHangar.Instance.SaveVessel(vessel, launchVehicleName, QuickLaunchHangar.LAUNCHFILENAME);
+            launchVehicle.SaveAsSubmodule(launchVehicleName);
+            tracker.startTracking(launchVehicleName);
         }
 
         private bool CheckFilename(string filename)
