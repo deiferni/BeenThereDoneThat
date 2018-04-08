@@ -72,10 +72,12 @@ namespace BeenThereDoneThat
             return launchVehicle.GetHashCode() == GetHashCode();
         }
 
-        public void SaveAsSubmodule()
+        public void SaveAsSubmodule(string launchVehicleName)
         {
-            ShipConstruct shipConstruct = new ShipConstruct("Launched vehicle as submodule", "wohooo", separator);
-            ShipConstruction.SaveSubassembly(shipConstruct, "Launched vehicle as submodule");
+            string description = string.Format("{0}: Launched vehicle as submodule", launchVehicleName);
+
+            ShipConstruct shipConstruct = new ShipConstruct(launchVehicleName, description, separator);
+            ShipConstruction.SaveSubassembly(shipConstruct, launchVehicleName);
             Debug.Log("[BeenThereDoneThat]: Saved launched vehicle as submodule");
         }
     }

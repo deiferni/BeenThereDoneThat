@@ -8,6 +8,7 @@ namespace BeenThereDoneThat
         private PopupDialog saveDialog;
         private PopupDialog confirmDialog;
 
+        private string launchVehicleName;
         private string saveFilename;
         private Vessel vessel;
 
@@ -20,12 +21,13 @@ namespace BeenThereDoneThat
             private set;
         }
 
-        public static SaveMissionDialog Create(Callback onDismissMenu, Vessel vessel)
+        public static SaveMissionDialog Create(Callback onDismissMenu, string launchVehicleName, Vessel vessel)
         {
             GameObject gameObject = new GameObject("BeenThereDoneThat mission save menu");
             SaveMissionDialog saveMissionDialog = gameObject.AddComponent<SaveMissionDialog>();
 
             saveMissionDialog.onDismissCallback = onDismissMenu;
+            saveMissionDialog.launchVehicleName = launchVehicleName;
             saveMissionDialog.vessel = vessel;
             saveMissionDialog.saveFilename = vessel.GetDisplayName();
 
@@ -105,12 +107,12 @@ namespace BeenThereDoneThat
 
         public void ConfirmDialog()
         {
-            if (QuickLaunchHangar.Exists(saveFilename))
+            if (QuickLaunchHangar.Instance.Exists(launchVehicleName, saveFilename))
             {
                 saveDialog.gameObject.SetActive(false);
                 confirmDialog = PopupDialog.SpawnPopupDialog(anchorMin, anchorMax, new MultiOptionDialog("SavegameConfirmation", "Overwrite " + saveFilename, "Overwrite", UISkinManager.GetSkin("MainMenuSkin"), new DialogGUIButton("Overwrite", delegate
                 {
-                    QuickLaunchHangar.SaveVessel(vessel, saveFilename);
+                    QuickLaunchHangar.Instance.SaveVessel(vessel, launchVehicleName, saveFilename);
                     DismissConfirmDialog();
                     DismissSaveDialog();
                 }, true), new DialogGUIButton("Cancel", delegate
@@ -129,7 +131,7 @@ namespace BeenThereDoneThat
                 return;
             }
 
-            QuickLaunchHangar.SaveVessel(vessel, saveFilename);
+            QuickLaunchHangar.Instance.SaveVessel(vessel, launchVehicleName, saveFilename);
             DismissSaveDialog();
         }
 

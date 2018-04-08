@@ -49,35 +49,62 @@ namespace BeenThereDoneThat
         }
 
         [KSPEvent(guiActive = true, guiName = "BeenThereDoneThat: start mission")]
-        public void SaveLaunchVehivle()
+        public void StartMission()
         {
             vessel.BackupVessel();
-            QuickLaunchHangar.SaveLaunchVessel(vessel);
 
+            QuickLaunchMissionTracker tracker = vessel.GetComponent<QuickLaunchMissionTracker>();
+            string launchVehicleName = vessel.name;
             LaunchVehicle launchVehicle = null;
             Payload payload = null;
+
+            if (tracker.isTracking)
+            {
+                Debug.Log("[BeenThereDoneThat]: Already tracking");
+                return;
+            }
+
             if (!QuickLauncher.Instance.Split(vessel.parts, out launchVehicle, out payload))
             {
                 return;
             }
-            launchVehicle.SaveAsSubmodule();
 
-            QuickLaunchMissionTracker tracker = vessel.GetComponent<QuickLaunchMissionTracker>();
-            tracker.SetActive();
+            launchVehicle.SaveAsSubmodule(launchVehicleName);
+            QuickLaunchHangar.Instance.SaveLaunchVessel(vessel, launchVehicleName);
+            tracker.startTracking(launchVehicleName);
         }
 
         [KSPEvent(guiActive = true, guiName = "BeenThereDoneThat: end mission")]
         public void RememberOrbit()
         {
             vessel.BackupVessel();
-            QuickLaunchHangar.Instance.SaveOrbitVessel(vessel);
+            QuickLaunchMissionTracker tracker = vessel.GetComponent<QuickLaunchMissionTracker>();
+            if (!tracker.isTracking)
+            {
+                Debug.Log("[BeenThereDoneThat]: Not tracking, aborting");
+                return;
+            }
+
+            QuickLaunchHangar.Instance.SaveOrbitVessel(vessel, tracker.launchVehicleName);
         }
 
         [KSPEvent(guiActive = true, guiName = "BeenThereDoneThat: re-run mission")]
         public void ReRunMission()
         {
-            ProtoVessel prevlaunchProtoVessel = QuickLaunchHangar.LoadLaunchProtoVessel();
-            ProtoVessel orbitProtoVessel = QuickLaunchHangar.LoadOrbitProtoVessel();
+            ProtoVessel prevlaunchProtoVessel = QuickLaunchHangar.Instance.LoadLaunchProtoVessel(vessel);
+            ProtoVessel orbitProtoVessel = QuickLaunchHangar.Instance.LoadOrbitProtoVessel(vessel);
+
+            if (prevlaunchProtoVessel == null)
+            {
+                Debug.Log("[BeenThereDoneThat]: No previously launched vessel found, aborting");
+                return;
+            }
+
+            if (orbitProtoVessel == null)
+            {
+                Debug.Log("[BeenThereDoneThat]: No orbit vessel found, aborting");
+                return;
+            }
 
             new QuickLauch(vessel, prevlaunchProtoVessel, orbitProtoVessel).Liftoff();
         }

@@ -3,11 +3,15 @@
     class QuickLaunchMissionTracker : VesselModule
     {
         [KSPField(isPersistant = true)]
-        protected bool isTracking = false;
+        public bool isTracking = false;
 
-        public void SetActive()
+        [KSPField(isPersistant = true)]
+        public string launchVehicleName = string.Empty;
+
+        public void startTracking(string name)
         {
             isTracking = true;
+            launchVehicleName = name;
         }
     }
 }
