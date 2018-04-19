@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace BeenThereDoneThat
 {
@@ -14,7 +14,6 @@ namespace BeenThereDoneThat
 
         private string selectedMission = string.Empty;
         private UISkinDef skin;
-        private List<DialogGUIToggleButton> items;
 
         public static QuickLaunchMissionDialog Instance
         {
@@ -29,7 +28,6 @@ namespace BeenThereDoneThat
 
             quickLaunchMissionDialog.onDismissCallback = onDismissCallback;
             quickLaunchMissionDialog.skin = UISkinManager.GetSkin("MainMenuSkin");
-            quickLaunchMissionDialog.items = new List<DialogGUIToggleButton>();
 
             return quickLaunchMissionDialog;
         }
@@ -83,17 +81,129 @@ namespace BeenThereDoneThat
 
         public void ShowDialog()
         {
-            CreateLoadList();
-            MultiOptionDialog missionList = new MultiOptionDialog("Start mission", "Start mission", "Start mission", UISkinManager.GetSkin("MainMenuSkin"),
-                            new DialogGUIVerticalLayout(200, 300, this.items.ToArray()),
-                            new DialogGUIButton("Save", delegate
-                            {
-                                ConfirmDialog();
-                            }, false), new DialogGUIButton("Cancel", delegate
-                            {
-                                DismissDialog();
-                            }, true));
-            dialog = PopupDialog.SpawnPopupDialog(anchorMin, anchorMax, missionList, false, null, true, string.Empty);
+            Rect windowRect = new Rect(0.5f, 0.5f, 350f, 500f);
+            MultiOptionDialog missionList = new MultiOptionDialog("Start mission", string.Empty, "Start mission", UISkinManager.GetSkin("MainMenuSkin"), windowRect, this.CreateBrowserDialog());
+            dialog = PopupDialog.SpawnPopupDialog(missionList, false, this.skin, true, string.Empty);
+        }
+
+        private DialogGUIBase CreateBrowserDialog()
+        {
+            DialogGUIContentSizer sizer = new DialogGUIContentSizer(ContentSizeFitter.FitMode.Unconstrained, ContentSizeFitter.FitMode.PreferredSize, true);
+            DialogGUIToggleGroup toggle = new DialogGUIToggleGroup(this.CreateBrowserItems());
+            DialogGUIGridLayout layout = new DialogGUIGridLayout(new RectOffset(0, 4, 4, 4), new Vector2(320f, 64f), new Vector2(0f, 0f), GridLayoutGroup.Corner.UpperLeft, GridLayoutGroup.Axis.Horizontal, TextAnchor.UpperLeft, GridLayoutGroup.Constraint.FixedColumnCount, 1, sizer, toggle);
+            DialogGUIScrollList scrollList = new DialogGUIScrollList(new Vector2(344f, 425f), false, true, layout);
+            DialogGUIButton dialogGUIButton = new DialogGUIButton("Delete", delegate
+            {
+                //this.ShowDeleteFileConfirm();
+            });
+            dialogGUIButton.OptionInteractableCondition = delegate
+            {
+                // int result;
+                int result = 0;
+                //if (this.selectedEntry != null)
+                //{
+                //    while (true)
+                //    {
+                //        switch (3)
+                //        {
+                //            case 0:
+                //                break;
+                //            default:
+                //                goto end_IL_0008;
+                //        }
+                //        continue;
+                //        continue;
+                //        end_IL_0008:
+                //        break;
+                //    }
+                //    if (true)
+                //    {
+                //        ;
+                //    }
+                //    result = ((!this.selectedEntry.isStock) ? 1 : 0);
+                //}
+                //else
+                //{
+                //    result = 0;
+                //}
+                return (byte)result != 0;
+            };
+            DialogGUIButton dialogGUIButton2 = new DialogGUIButton("Cancel", delegate
+            {
+                //if (this.OnBrowseCancelled != null)
+                //{
+                //    while (true)
+                //    {
+                //        switch (1)
+                //        {
+                //            case 0:
+                //                break;
+                //            default:
+                //                goto end_IL_0008;
+                //        }
+                //        continue;
+                //        continue;
+                //        end_IL_0008:
+                //        break;
+                //    }
+                //    if (true)
+                //    {
+                //        ;
+                //    }
+                //    this.OnBrowseCancelled();
+                //}
+                //UnityEngine.Object.Destroy(base.gameObject);
+            });
+            DialogGUIButton dialogGUIButton3 = new DialogGUIButton("Load", delegate
+            {
+                //this.OnFileSelected(this.selectedEntry.fullFilePath, LoadType.Normal);
+                //UnityEngine.Object.Destroy(base.gameObject);
+            });
+            //dialogGUIButton3.OptionInteractableCondition = (() => this.selectedEntry != null);
+            DialogGUIVerticalLayout dialogGUIVerticalLayout = new DialogGUIVerticalLayout(true, true);
+            dialogGUIVerticalLayout.AddChild(scrollList);
+            dialogGUIVerticalLayout.AddChild(new DialogGUIHorizontalLayout(dialogGUIButton, dialogGUIButton2, dialogGUIButton3));
+            return dialogGUIVerticalLayout;
+        }
+
+        private DialogGUIToggleButton[] CreateBrowserItems()
+        {
+            List<DialogGUIToggleButton> list = new List<DialogGUIToggleButton>();
+            int i = 0;
+            int craftIndex;
+            DialogGUIVerticalLayout dialogGUIVerticalLayout;
+            DialogGUIToggleButton dialogGUIToggleButton;
+            string[] craftList = new string[] { "Click", "meeee", "clikkkkkk", "meee tooo!", "Click", "meeee", "clikkkkkk", "meee tooo!", "Click", "meeee", "clikkkkkk", "meee tooo!" };
+
+            for (int count = craftList.Length; i < count; dialogGUIToggleButton = new DialogGUIToggleButton(() => "Click" == craftList[craftIndex], string.Empty, delegate
+            {
+                //this.SelectItem(craftIndex);
+            }, -1f, 1f), dialogGUIToggleButton.AddChild(dialogGUIVerticalLayout), dialogGUIToggleButton.OptionInteractableCondition = (() => true), list.Add(dialogGUIToggleButton), i++)
+            {
+
+                craftIndex = i;
+                dialogGUIVerticalLayout = new DialogGUIVerticalLayout(true, false, 0f, new RectOffset(4, 4, 4, 4), TextAnchor.UpperLeft);
+                dialogGUIVerticalLayout.AddChild(new DialogGUILabel(craftList[i], this.skin.customStyles[0], true, false));
+                DialogGUIVerticalLayout dialogGUIVerticalLayout2 = dialogGUIVerticalLayout;
+                object[] obj = new object[7]
+                {
+                "<color=#ffffff>",
+                1337,
+                null,
+                null,
+                null,
+                null,
+                null
+                };
+                obj[2] = "things";
+                obj[3] = " in ";
+                obj[4] = 42;
+                obj[5] = "other things";
+                obj[6] = "</color>";
+                dialogGUIVerticalLayout2.AddChild(new DialogGUILabel(string.Concat(obj), this.skin.customStyles[0], true, false));
+                dialogGUIVerticalLayout.AddChild(new DialogGUILabel("<color=#ffffff>Cost: " + "very MUCH!!!!!" + "</color>", this.skin.customStyles[0], true, false));
+                }
+             return list.ToArray();
         }
 
         public void ConfirmDialog()
@@ -122,68 +232,5 @@ namespace BeenThereDoneThat
         {
         }
 
-        private void CreateLoadList()
-        {
-            DialogGUILabel.TextLabelOptions textLabelOptions = new DialogGUILabel.TextLabelOptions();
-            textLabelOptions.enableWordWrapping = false;
-            textLabelOptions.OverflowMode = TextOverflowModes.Overflow;
-            textLabelOptions.resizeBestFit = true;
-            textLabelOptions.resizeMinFontSize = 11;
-            textLabelOptions.resizeMaxFontSize = 12;
-            DialogGUILabel.TextLabelOptions textLabelOptions2 = textLabelOptions;
-
-            foreach (string demo in new string[] { "Click", "meeee", "clikkkkkk", "meee tooo!" })
-            {
-                DialogGUIToggleButton dialogGUIToggleButton = new DialogGUIToggleButton(false, string.Empty, delegate (bool isActive)
-                {
-                    selectedMission = demo;
-                    if (Mouse.Left.GetDoubleClick(true))
-                    {
-                        if (isActive)
-                        {
-                            this.ConfirmLoadGame();
-                        }
-                    }
-                    this.OnSelectionChanged(true);
-                }, -1f, 1f);
-                dialogGUIToggleButton.guiStyle = this.skin.customStyles[8];
-                dialogGUIToggleButton.OptionInteractableCondition = delegate
-                {
-                    return true;
-                };
-                DialogGUILabel dialogGUILabel = new DialogGUILabel(demo, this.skin.customStyles[0], true, false);
-                dialogGUILabel.textLabelOptions = new DialogGUILabel.TextLabelOptions
-                {
-                    resizeBestFit = true,
-                    resizeMinFontSize = 11,
-                    resizeMaxFontSize = 12,
-                    enableWordWrapping = false,
-                    OverflowMode = TextOverflowModes.Ellipsis
-                };
-                DialogGUIVerticalLayout dialogGUIVerticalLayout = new DialogGUIVerticalLayout(true, false, 0f, new RectOffset(), TextAnchor.UpperLeft, dialogGUILabel);
-                dialogGUIVerticalLayout.AddChild(new DialogGUILabel("XXX " + demo, this.skin.customStyles[1], true, false)
-                {
-                    textLabelOptions = textLabelOptions2
-                });
-                dialogGUIVerticalLayout.AddChild(new DialogGUILabel("YYY " + demo, this.skin.customStyles[2], true, false)
-                {
-                    textLabelOptions = textLabelOptions2
-                });
-
-                dialogGUIToggleButton.AddChild(new DialogGUIHorizontalLayout(false, false, 4f, new RectOffset(0, 8, 6, 7), TextAnchor.MiddleLeft, dialogGUIVerticalLayout));
-                this.items.Add(dialogGUIToggleButton);
-            }
-
-            int count = items.Count;
-            for (int j = 0; j<count; j++)
-            {
-                DialogGUIToggleButton dialogGUIToggleButton2 = this.items[j];
-                Stack<Transform> stack = new Stack<Transform>();
-                stack.Push(base.transform);
-                                    GameObject gameObject = dialogGUIToggleButton2.Create(ref stack, this.skin);
-                // XXX gameObject.transform.SetParent(this.scrollListContent, false);
-                // XXX dialogGUIToggleButton2.toggle.group = this.listGroup;
-            }
-        }
     }
 }
