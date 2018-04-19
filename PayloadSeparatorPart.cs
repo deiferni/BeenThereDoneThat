@@ -88,6 +88,10 @@ namespace BeenThereDoneThat
         [KSPEvent(guiActive = true, guiName = "BeenThereDoneThat: re-run mission")]
         public void ReRunMission()
         {
+            QuickLaunchMissionDialog.Create(OnReRunDialogDismissed);
+            // XXX
+            return;
+
             ProtoVessel prevlaunchProtoVessel = QuickLaunchHangar.Instance.LoadLaunchProtoVessel(vessel);
             ProtoVessel orbitProtoVessel = QuickLaunchHangar.Instance.LoadOrbitProtoVessel(vessel);
 
@@ -104,6 +108,10 @@ namespace BeenThereDoneThat
             }
 
             new QuickLauch(vessel, prevlaunchProtoVessel, orbitProtoVessel).Liftoff();
+        }
+
+        public void OnReRunDialogDismissed()
+        {
         }
     }
 }
