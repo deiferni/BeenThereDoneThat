@@ -12,8 +12,7 @@ namespace BeenThereDoneThat
 
         private SaveMissionDialog saveMissionDialog;
         private StartMissionDialog startMissionDialog;
-        private Dictionary<int, ProtoVessel> prevLaunchVessels;
-        private Dictionary<int, ProtoVessel> orbitVessels;
+        private Dictionary<int, QuickLaunchVessel> quickLaunchVessels;
 
         public static QuickLaunchHangar Instance
         {
@@ -24,13 +23,12 @@ namespace BeenThereDoneThat
         public void Awake()
         {
             Instance = this;
-            InitLaunchVehicles();
+            InitQuickLaunchVessels();
         }
 
-        private void InitLaunchVehicles()
+        private void InitQuickLaunchVessels()
         {
-            prevLaunchVessels = new Dictionary<int, ProtoVessel>();
-            orbitVessels = new Dictionary<int, ProtoVessel>();
+            quickLaunchVessels = new Dictionary<int, QuickLaunchVessel>();
 
             string directory = GetHangarPath();
             if (!Directory.Exists(directory))
@@ -41,7 +39,6 @@ namespace BeenThereDoneThat
             foreach (string launchVehiceDirectory in launchVehicleDirectories)
             {
                 string launchVehicleFile = Path.Combine(launchVehiceDirectory, LAUNCHFILENAME + ".craft");
-                int key;
                 if (!File.Exists(launchVehicleFile))
                 {
                     continue;
@@ -54,24 +51,25 @@ namespace BeenThereDoneThat
                 {
                     continue;
                 }
-                prevLaunchVessels[previousLaunchVehicle.GetHashCode()] = prevlaunchProtoVessel;
-                key = previousLaunchVehicle.GetHashCode();
+
+                QuickLaunchVessel quickLaunchVessel = new QuickLaunchVessel(prevlaunchProtoVessel, previousLaunchVehicle);
+                quickLaunchVessels[quickLaunchVessel.GetHashCode()] = quickLaunchVessel;
 
                 string missionsPath = Path.Combine(launchVehiceDirectory, "Missions");
                 if (!Directory.Exists(missionsPath))
                 {
                     continue;
                 }
-                foreach (string missionFile in Directory.GetFiles(missionsPath))
+                foreach (string missionFilePath in Directory.GetFiles(missionsPath))
                 {
-                    ConfigNode orbitRootNode = ConfigNode.Load(missionFile);
+                    ConfigNode orbitRootNode = ConfigNode.Load(missionFilePath);
                     ProtoVessel orbitProtoVessel = new ProtoVessel(orbitRootNode, HighLogic.CurrentGame);
                     ProtoLaunchVehicle orbitLaunchVehicle = null;
                     ProtoPayload orbitPayload = null;
                     if (QuickLauncher.Instance.Split(orbitProtoVessel, out orbitLaunchVehicle, out orbitPayload))
                     {
-                        // XXX this overwrites missions and just keep the last
-                        orbitVessels[key] = orbitProtoVessel;
+                        string missionName = Path.GetFileNameWithoutExtension(missionFilePath);
+                        quickLaunchVessel.AddMission(missionName, orbitProtoVessel);
                     }
                 }
             }
@@ -107,6 +105,49 @@ namespace BeenThereDoneThat
             startMissionDialog = null;
         }
 
+        public void OnReRunMission(Vessel vessel)
+        {
+            LaunchVehicle launchVehicle = null;
+            Payload payload = null;
+            if (!QuickLauncher.Instance.Split(vessel.parts, out launchVehicle, out payload))
+            {
+                // XXX
+                return;
+            }
+
+            int key = launchVehicle.GetHashCode();
+            if (!quickLaunchVessels.ContainsKey(key))
+            {
+                return;
+            }
+
+            QuickLaunchVessel quickLaunchVessel = quickLaunchVessels[key];
+            QuickLaunchMissionDialog.Create(OnReRunDialogDismissed, quickLaunchVessel);
+            // XXX
+            return;
+
+            ProtoVessel prevlaunchProtoVessel = QuickLaunchHangar.Instance.LoadLaunchProtoVessel(vessel);
+            ProtoVessel orbitProtoVessel = QuickLaunchHangar.Instance.LoadOrbitProtoVessel(vessel);
+
+            if (prevlaunchProtoVessel == null)
+            {
+                Debug.Log("[BeenThereDoneThat]: No previously launched vessel found, aborting");
+                return;
+            }
+
+            if (orbitProtoVessel == null)
+            {
+                Debug.Log("[BeenThereDoneThat]: No orbit vessel found, aborting");
+                return;
+            }
+
+            new QuickLauch(vessel, prevlaunchProtoVessel, orbitProtoVessel).Liftoff();
+        }
+
+        public void OnReRunDialogDismissed()
+        {
+        }
+
         public ProtoVessel LoadOrbitProtoVessel(Vessel vessel)
         {
             LaunchVehicle launchVehicle = null;
@@ -117,11 +158,11 @@ namespace BeenThereDoneThat
             }
 
             int key = launchVehicle.GetHashCode();
-            if (!orbitVessels.ContainsKey(key))
+            if (!quickLaunchVessels.ContainsKey(key))
             {
                 return null;
             }
-            return orbitVessels[key];
+            return quickLaunchVessels[key].TMPGetLastVessel();
         }
 
         public ProtoVessel LoadLaunchProtoVessel(Vessel vessel)
@@ -134,12 +175,12 @@ namespace BeenThereDoneThat
             }
 
             int key = launchVehicle.GetHashCode();
-            if (!prevLaunchVessels.ContainsKey(key))
+            if (!quickLaunchVessels.ContainsKey(key))
             {
                 return null;
             }
 
-            return prevLaunchVessels[key];
+            return quickLaunchVessels[key].launchProtoVessel;
         }
 
         public bool ContainsMissionVehicle(string launchVehicleName, string missionName)

@@ -88,30 +88,8 @@ namespace BeenThereDoneThat
         [KSPEvent(guiActive = true, guiName = "BeenThereDoneThat: re-run mission")]
         public void ReRunMission()
         {
-            QuickLaunchMissionDialog.Create(OnReRunDialogDismissed);
-            // XXX
-            return;
-
-            ProtoVessel prevlaunchProtoVessel = QuickLaunchHangar.Instance.LoadLaunchProtoVessel(vessel);
-            ProtoVessel orbitProtoVessel = QuickLaunchHangar.Instance.LoadOrbitProtoVessel(vessel);
-
-            if (prevlaunchProtoVessel == null)
-            {
-                Debug.Log("[BeenThereDoneThat]: No previously launched vessel found, aborting");
-                return;
-            }
-
-            if (orbitProtoVessel == null)
-            {
-                Debug.Log("[BeenThereDoneThat]: No orbit vessel found, aborting");
-                return;
-            }
-
-            new QuickLauch(vessel, prevlaunchProtoVessel, orbitProtoVessel).Liftoff();
-        }
-
-        public void OnReRunDialogDismissed()
-        {
+            vessel.BackupVessel();
+            QuickLaunchHangar.Instance.OnReRunMission(vessel);
         }
     }
 }
