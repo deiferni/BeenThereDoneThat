@@ -21,9 +21,9 @@ namespace BeenThereDoneThat
             return launchVehicle.GetHashCode();
         }
 
-        public void AddMission(string missionFile, ProtoVessel orbitProtoVessel)
+        public void AddMission(string missionFilePath, ProtoVessel orbitProtoVessel)
         {
-            missions.Add(new QuickLaunchMission(missionFile, orbitProtoVessel));
+            missions.Add(new QuickLaunchMission(this, missionFilePath, orbitProtoVessel));
         }
 
         public List<QuickLaunchMission> GetMissions()
@@ -31,10 +31,9 @@ namespace BeenThereDoneThat
             return missions;
         }
 
-        internal ProtoVessel TMPGetLastVessel()
+        internal void RemoveMission(QuickLaunchMission quickLaunchMission)
         {
-            QuickLaunchMission lastMission = missions[missions.Count - 1];
-            return lastMission.protoVessel;
+            missions.Remove(quickLaunchMission);
         }
     }
 }

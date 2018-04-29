@@ -14,9 +14,10 @@ namespace BeenThereDoneThat
         private static Vector2 anchorMax = new Vector2(0.5f, 0.5f);
 
         private QuickLaunchVessel quickLaunchVessel;
-        private string selectedMission = string.Empty;
+        private Vessel vessel;
         private UISkinDef skin;
-        private int selectedEntry;
+        private int selectedMissionIndex;
+        private PopupDialog confirmDeleteDialog;
 
         public static QuickLaunchMissionDialog Instance
         {
@@ -24,7 +25,7 @@ namespace BeenThereDoneThat
             private set;
         }
 
-        public static QuickLaunchMissionDialog Create(Callback onDismissCallback, QuickLaunchVessel quickLaunchVessel)
+        public static QuickLaunchMissionDialog Create(Callback onDismissCallback, QuickLaunchVessel quickLaunchVessel, Vessel vessel)
         {
             GameObject gameObject = new GameObject("BeenThereDoneThat mission start menu");
             QuickLaunchMissionDialog quickLaunchMissionDialog = gameObject.AddComponent<QuickLaunchMissionDialog>();
@@ -32,7 +33,8 @@ namespace BeenThereDoneThat
             quickLaunchMissionDialog.onDismissCallback = onDismissCallback;
             quickLaunchMissionDialog.skin = UISkinManager.GetSkin("MainMenuSkin");
             quickLaunchMissionDialog.quickLaunchVessel = quickLaunchVessel;
-            quickLaunchMissionDialog.selectedEntry = -1;
+            quickLaunchMissionDialog.vessel = vessel;
+            quickLaunchMissionDialog.selectedMissionIndex = -1;
 
             return quickLaunchMissionDialog;
         }
@@ -86,23 +88,27 @@ namespace BeenThereDoneThat
 
         public void ShowDialog()
         {
+            if (dialog != null)
+            {
+                dialog.Dismiss();
+            }
             Rect windowRect = new Rect(0.5f, 0.5f, 350f, 500f);
-            MultiOptionDialog missionList = new MultiOptionDialog("Start mission", string.Empty, "Start mission", skin, windowRect, this.CreateBrowserDialog());
+            MultiOptionDialog missionList = new MultiOptionDialog("Start mission", string.Empty, "Start mission", skin, windowRect, this.CreateMissionListDialog());
             dialog = PopupDialog.SpawnPopupDialog(missionList, false, skin, true, string.Empty);
         }
 
-        private DialogGUIBase CreateBrowserDialog()
+        private DialogGUIBase CreateMissionListDialog()
         {
             DialogGUIContentSizer sizer = new DialogGUIContentSizer(ContentSizeFitter.FitMode.Unconstrained, ContentSizeFitter.FitMode.PreferredSize, true);
-            DialogGUIToggleGroup toggle = new DialogGUIToggleGroup(this.CreateBrowserItems());
+            DialogGUIToggleGroup toggle = new DialogGUIToggleGroup(this.CreateMissionListItems());
             DialogGUIGridLayout layout = new DialogGUIGridLayout(new RectOffset(0, 4, 4, 4), new Vector2(320f, 64f), new Vector2(0f, 0f), GridLayoutGroup.Corner.UpperLeft, GridLayoutGroup.Axis.Horizontal, TextAnchor.UpperLeft, GridLayoutGroup.Constraint.FixedColumnCount, 1, sizer, toggle);
             DialogGUIScrollList scrollList = new DialogGUIScrollList(new Vector2(344f, 425f), false, true, layout);
 
             DialogGUIButton deleteButton = new DialogGUIButton("Delete", delegate
             {
-                //this.ShowDeleteFileConfirm();
+                ShowDeleteMissionConfirmDialog();
             });
-            deleteButton.OptionInteractableCondition = (() => selectedEntry >= 0);
+            deleteButton.OptionInteractableCondition = (() => selectedMissionIndex >= 0);
 
             DialogGUIButton cancelButton = new DialogGUIButton("Cancel", delegate
             {
@@ -111,10 +117,10 @@ namespace BeenThereDoneThat
 
             DialogGUIButton loadButton = new DialogGUIButton("Load", delegate
             {
-                //this.OnFileSelected(this.selectedEntry.fullFilePath, LoadType.Normal);
-                //UnityEngine.Object.Destroy(base.gameObject);
+                OnMissionSelected();
+                DismissDialog();
             });
-            loadButton.OptionInteractableCondition = (() => selectedEntry >= 0);
+            loadButton.OptionInteractableCondition = (() => selectedMissionIndex >= 0);
 
             DialogGUIVerticalLayout dialogGUIVerticalLayout = new DialogGUIVerticalLayout(true, true);
             dialogGUIVerticalLayout.AddChild(scrollList);
@@ -122,20 +128,21 @@ namespace BeenThereDoneThat
             return dialogGUIVerticalLayout;
         }
 
-        private DialogGUIToggleButton[] CreateBrowserItems()
+        private DialogGUIToggleButton[] CreateMissionListItems()
         {
             List<DialogGUIToggleButton> list = new List<DialogGUIToggleButton>();
-            int i = 0;
-            int craftIndex;
             DialogGUIVerticalLayout dialogGUIVerticalLayout;
             DialogGUIToggleButton dialogGUIToggleButton;
+            List<QuickLaunchMission> missions = quickLaunchVessel.GetMissions();
 
-            foreach (QuickLaunchMission mission in quickLaunchVessel.GetMissions())
+            for (int i = 0; i < missions.Count; i++)
             {
-                craftIndex = i;
+                int missionIndex = i;
+                QuickLaunchMission mission = missions[missionIndex];
+
                 dialogGUIToggleButton = new DialogGUIToggleButton(false, string.Empty, delegate
                 {
-                    this.SelectItem(craftIndex);
+                    SelectItem(missionIndex);
                 }, -1f, 1f);
 
                 dialogGUIVerticalLayout = new DialogGUIVerticalLayout(true, false, 0f, new RectOffset(4, 4, 4, 4), TextAnchor.UpperLeft);
@@ -151,14 +158,41 @@ namespace BeenThereDoneThat
                 dialogGUIToggleButton.AddChild(dialogGUIVerticalLayout);
                 dialogGUIToggleButton.OptionInteractableCondition = (() => true);
                 list.Add(dialogGUIToggleButton);
-                i++;
             }
             return list.ToArray();
         }
 
-        public void ConfirmDialog()
+        public void OnMissionSelected()
         {
-            DismissDialog();
+            GetSelectedMission().Launch(vessel);
+        }
+
+        private void ShowDeleteMissionConfirmDialog()
+        {
+            if (dialog != null)
+            {
+                dialog.gameObject.SetActive(false);
+            }
+
+            confirmDeleteDialog = PopupDialog.SpawnPopupDialog(anchorMin, anchorMax, new MultiOptionDialog("ConfirmFileDelete", string.Empty, "Delete Mission", skin, new DialogGUIButton("Delete", delegate
+            {
+                GetSelectedMission().Delete();
+                DismissConfirmDialog();
+                ShowDialog();
+            }, true), new DialogGUIButton("Cancel", delegate
+            {
+                DismissConfirmDialog();
+            }, true)), false, null, true, string.Empty);
+        }
+
+        public void DismissConfirmDialog()
+        {
+            confirmDeleteDialog.Dismiss();
+            confirmDeleteDialog = null;
+            if (dialog != null)
+            {
+                dialog.gameObject.SetActive(true);
+            }
         }
 
         public void DismissDialog()
@@ -172,20 +206,16 @@ namespace BeenThereDoneThat
             Destroy(base.gameObject);
         }
 
-        private void ConfirmLoadGame()
+        private void SelectItem(int missionIndex)
         {
-            // XXX onDismissCallback(selectedMission);
-            DismissDialog();
+            selectedMissionIndex = missionIndex;
+            Debug.Log(string.Format("[BeenThereDoneThat]: Selected mission {0}", missionIndex));
         }
 
-        private void SelectItem(int craftIndex)
+        private QuickLaunchMission GetSelectedMission()
         {
-            selectedEntry = craftIndex;
+            Debug.Log(string.Format("[BeenThereDoneThat]: Returning mission at {0}", selectedMissionIndex));
+            return quickLaunchVessel.GetMissions()[selectedMissionIndex];
         }
-
-        protected void OnSelectionChanged(bool haveSelection)
-        {
-        }
-
     }
 }

@@ -51,7 +51,7 @@ namespace BeenThereDoneThat
         [KSPEvent(guiActive = true, guiName = "BeenThereDoneThat: start mission")]
         public void StartMission()
         {
-            vessel.BackupVessel();
+            PrepareVessel();
 
             QuickLaunchMissionTracker tracker = vessel.GetComponent<QuickLaunchMissionTracker>();
             LaunchVehicle launchVehicle = null;
@@ -74,7 +74,7 @@ namespace BeenThereDoneThat
         [KSPEvent(guiActive = true, guiName = "BeenThereDoneThat: end mission")]
         public void RememberOrbit()
         {
-            vessel.BackupVessel();
+            PrepareVessel();
             QuickLaunchMissionTracker tracker = vessel.GetComponent<QuickLaunchMissionTracker>();
             if (!tracker.isTracking)
             {
@@ -88,8 +88,13 @@ namespace BeenThereDoneThat
         [KSPEvent(guiActive = true, guiName = "BeenThereDoneThat: re-run mission")]
         public void ReRunMission()
         {
+            PrepareVessel();
+            QuickLaunchHangar.Instance.OnQuickLaunchMission(vessel);
+        }
+
+        private void PrepareVessel()
+        {
             vessel.BackupVessel();
-            QuickLaunchHangar.Instance.OnReRunMission(vessel);
         }
     }
 }

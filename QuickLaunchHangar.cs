@@ -7,11 +7,11 @@ namespace BeenThereDoneThat
     [KSPAddon(KSPAddon.Startup.FlightAndEditor, false)]
     public class QuickLaunchHangar : MonoBehaviour
     {
-        public static string ORBITFILENAME = "VesselOrbit";
         public static string LAUNCHFILENAME = "VesselLaunch";
 
         private SaveMissionDialog saveMissionDialog;
         private StartMissionDialog startMissionDialog;
+        private QuickLaunchMissionDialog quickLaunchMissionDialog;
         private Dictionary<int, QuickLaunchVessel> quickLaunchVessels;
 
         public static QuickLaunchHangar Instance
@@ -68,8 +68,7 @@ namespace BeenThereDoneThat
                     ProtoPayload orbitPayload = null;
                     if (QuickLauncher.Instance.Split(orbitProtoVessel, out orbitLaunchVehicle, out orbitPayload))
                     {
-                        string missionName = Path.GetFileNameWithoutExtension(missionFilePath);
-                        quickLaunchVessel.AddMission(missionName, orbitProtoVessel);
+                        quickLaunchVessel.AddMission(missionFilePath, orbitProtoVessel);
                     }
                 }
             }
@@ -105,7 +104,7 @@ namespace BeenThereDoneThat
             startMissionDialog = null;
         }
 
-        public void OnReRunMission(Vessel vessel)
+        public void OnQuickLaunchMission(Vessel vessel)
         {
             LaunchVehicle launchVehicle = null;
             Payload payload = null;
@@ -122,47 +121,12 @@ namespace BeenThereDoneThat
             }
 
             QuickLaunchVessel quickLaunchVessel = quickLaunchVessels[key];
-            QuickLaunchMissionDialog.Create(OnReRunDialogDismissed, quickLaunchVessel);
-            // XXX
-            return;
-
-            ProtoVessel prevlaunchProtoVessel = QuickLaunchHangar.Instance.LoadLaunchProtoVessel(vessel);
-            ProtoVessel orbitProtoVessel = QuickLaunchHangar.Instance.LoadOrbitProtoVessel(vessel);
-
-            if (prevlaunchProtoVessel == null)
-            {
-                Debug.Log("[BeenThereDoneThat]: No previously launched vessel found, aborting");
-                return;
-            }
-
-            if (orbitProtoVessel == null)
-            {
-                Debug.Log("[BeenThereDoneThat]: No orbit vessel found, aborting");
-                return;
-            }
-
-            new QuickLauch(vessel, prevlaunchProtoVessel, orbitProtoVessel).Liftoff();
+            quickLaunchMissionDialog = QuickLaunchMissionDialog.Create(OnQuickLaunchDialogDismissed, quickLaunchVessel, vessel);
         }
 
-        public void OnReRunDialogDismissed()
+        public void OnQuickLaunchDialogDismissed()
         {
-        }
-
-        public ProtoVessel LoadOrbitProtoVessel(Vessel vessel)
-        {
-            LaunchVehicle launchVehicle = null;
-            Payload payload = null;
-            if (!QuickLauncher.Instance.Split(vessel.parts, out launchVehicle, out payload))
-            {
-                return null;
-            }
-
-            int key = launchVehicle.GetHashCode();
-            if (!quickLaunchVessels.ContainsKey(key))
-            {
-                return null;
-            }
-            return quickLaunchVessels[key].TMPGetLastVessel();
+            quickLaunchMissionDialog = null;
         }
 
         public ProtoVessel LoadLaunchProtoVessel(Vessel vessel)
