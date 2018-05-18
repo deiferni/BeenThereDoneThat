@@ -34,6 +34,8 @@ namespace BeenThereDoneThat
                 return;
             }
 
+            QuickLaunchMissionTracker tracker = vessel.GetComponent<QuickLaunchMissionTracker>();
+            tracker.StartTracking(quickLaunchVessel.name);
             new QuickLauch(vessel, prevlaunchProtoVessel, protoVessel).Liftoff();
         }
 
