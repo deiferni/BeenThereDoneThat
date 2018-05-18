@@ -52,23 +52,7 @@ namespace BeenThereDoneThat
         public void StartMission()
         {
             PrepareVessel();
-
-            QuickLaunchMissionTracker tracker = vessel.GetComponent<QuickLaunchMissionTracker>();
-            LaunchVehicle launchVehicle = null;
-            Payload payload = null;
-
-            if (tracker.isTracking)
-            {
-                Debug.Log("[BeenThereDoneThat]: Already tracking");
-                return;
-            }
-
-            if (!QuickLauncher.Instance.Split(vessel.parts, out launchVehicle, out payload))
-            {
-                return;
-            }
-
-            QuickLaunchHangar.Instance.OnSaveLaunchVessel(vessel, launchVehicle, tracker);
+            QuickLaunchHangar.Instance.OnStartMission(vessel);
         }
 
         [KSPEvent(guiActive = true, guiName = "BeenThereDoneThat: end mission")]

@@ -52,7 +52,9 @@ namespace BeenThereDoneThat
                     continue;
                 }
 
-                QuickLaunchVessel quickLaunchVessel = new QuickLaunchVessel(prevlaunchProtoVessel, previousLaunchVehicle);
+                string[] parts = launchVehiceDirectory.Split(Path.DirectorySeparatorChar);
+                string vesselName = parts[parts.Length-1];
+                QuickLaunchVessel quickLaunchVessel = new QuickLaunchVessel(vesselName, prevlaunchProtoVessel, previousLaunchVehicle);
                 quickLaunchVessels[quickLaunchVessel.GetHashCode()] = quickLaunchVessel;
 
                 string missionsPath = Path.Combine(launchVehiceDirectory, "Missions");
@@ -89,14 +91,42 @@ namespace BeenThereDoneThat
             saveMissionDialog = null;
         }
 
-        public void OnSaveLaunchVessel(Vessel vessel, LaunchVehicle launchVehicle, QuickLaunchMissionTracker tracker)
+        public void OnStartMission(Vessel vessel)
         {
             if (vessel.situation != Vessel.Situations.PRELAUNCH)
             {
                 ScreenMessages.PostScreenMessage("Can't start, must be pre-launch!", 4, ScreenMessageStyle.UPPER_CENTER);
                 return;
             }
-            startMissionDialog = StartMissionDialog.Create(OnStartMissionDialogDismiss, vessel, launchVehicle, tracker);
+
+            QuickLaunchMissionTracker tracker = vessel.GetComponent<QuickLaunchMissionTracker>();
+            LaunchVehicle launchVehicle = null;
+            Payload payload = null;
+
+            if (tracker.isTracking)
+            {
+                ScreenMessages.PostScreenMessage("Already tracking!", 4, ScreenMessageStyle.UPPER_CENTER);
+                return;
+            }
+
+            if (!QuickLauncher.Instance.Split(vessel.parts, out launchVehicle, out payload))
+            {
+                ScreenMessages.PostScreenMessage("No payload separator available", 4, ScreenMessageStyle.UPPER_CENTER);
+                return;
+            }
+
+            QuickLaunchVessel quickLaunchVessel = null;
+            if (quickLaunchVessels.TryGetValue(launchVehicle.GetHashCode(), out quickLaunchVessel))
+            {
+                string vesselName = quickLaunchVessel.name;
+                tracker.StartTracking(vesselName);
+                ScreenMessages.PostScreenMessage(string.Format("Started tracking {0}", vesselName), 4, ScreenMessageStyle.UPPER_CENTER);
+                return;
+            }
+            else
+            {
+                startMissionDialog = StartMissionDialog.Create(OnStartMissionDialogDismiss, vessel, launchVehicle, tracker);
+            }
         }
 
         public void OnStartMissionDialogDismiss()

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace BeenThereDoneThat
 {
@@ -8,9 +7,11 @@ namespace BeenThereDoneThat
         public List<QuickLaunchMission> missions;
         public ProtoLaunchVehicle launchVehicle;
         public ProtoVessel launchProtoVessel;
+        public string name;
 
-        public QuickLaunchVessel(ProtoVessel prevlaunchProtoVessel, ProtoLaunchVehicle previousLaunchVehicle)
+        public QuickLaunchVessel(string vesselName, ProtoVessel prevlaunchProtoVessel, ProtoLaunchVehicle previousLaunchVehicle)
         {
+            name = vesselName;
             launchProtoVessel = prevlaunchProtoVessel;
             launchVehicle = previousLaunchVehicle;
             missions = new List<QuickLaunchMission>();
