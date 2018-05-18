@@ -148,11 +148,11 @@ namespace BeenThereDoneThat
                 dialogGUIVerticalLayout = new DialogGUIVerticalLayout(true, false, 0f, new RectOffset(4, 4, 4, 4), TextAnchor.UpperLeft);
                 dialogGUIVerticalLayout.AddChild(new DialogGUILabel(mission.missionName, skin.customStyles[0], true, false));
                 DialogGUIVerticalLayout dialogGUIVerticalLayout2 = dialogGUIVerticalLayout;
-                OrbitSnapshot orbit = mission.protoVessel.orbitSnapShot;
-                CelestialBody body = FlightGlobals.Bodies[orbit.ReferenceBodyIndex];
+                Orbit orbit = mission.protoVessel.orbitSnapShot.Load();
+                CelestialBody body = orbit.referenceBody;
                 string orbitBody = string.Format("<color=#ffffff>Orbiting {0}</color>", body.name);
                 dialogGUIVerticalLayout2.AddChild(new DialogGUILabel(orbitBody, skin.customStyles[0], true, false));
-                string orbitInfo = string.Format("<color=#ffffff>SMA: {0}, Inc: {1}</color>", Utils.FormatAltitude(orbit.semiMajorAxis), Math.Round(orbit.inclination, 3));
+                string orbitInfo = string.Format("<color=#ffffff>Ap: {0}, Pe: {1}, Inc: {2}</color>", Utils.FormatAltitude(orbit.ApA), Utils.FormatAltitude(orbit.PeA), Math.Round(orbit.inclination, 3));
                 dialogGUIVerticalLayout.AddChild(new DialogGUILabel(orbitInfo, skin.customStyles[0], true, false));
 
                 dialogGUIToggleButton.AddChild(dialogGUIVerticalLayout);
