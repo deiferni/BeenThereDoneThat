@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
@@ -127,6 +128,11 @@ namespace BeenThereDoneThat
             {
                 startMissionDialog = StartMissionDialog.Create(OnStartMissionDialogDismiss, vessel, launchVehicle, tracker);
             }
+        }
+
+        public void Purge(string launchVehicleName)
+        {
+            Directory.Delete(GetLaunchVehiclePath(launchVehicleName), true);
         }
 
         public void OnStartMissionDialogDismiss()

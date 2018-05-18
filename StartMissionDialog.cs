@@ -114,6 +114,7 @@ namespace BeenThereDoneThat
                 saveDialog.gameObject.SetActive(false);
                 confirmDialog = PopupDialog.SpawnPopupDialog(anchorMin, anchorMax, new MultiOptionDialog("SavegameConfirmation", "Overwrite " + launchVehicleName, "Overwrite", UISkinManager.GetSkin("MainMenuSkin"), new DialogGUIButton("Overwrite", delegate
                 {
+                    QuickLaunchHangar.Instance.Purge(launchVehicleName);
                     OnStartConfirmed();
                     DismissConfirmDialog();
                     DismissSaveDialog();
