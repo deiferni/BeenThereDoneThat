@@ -15,6 +15,9 @@ namespace BeenThereDoneThat
         private static Vector2 anchorMin = new Vector2(0.5f, 0.5f);
         private static Vector2 anchorMax = new Vector2(0.5f, 0.5f);
 
+        private static double CONSIDERED_CIRCULAR = 0.025;
+        private static string[] ALTITUDE_UNITS = new string[]{"m", "K", "M", "G", "T", "P", "E", "Z", "Y", "X"};
+
         public static SaveMissionDialog Instance
         {
             get;
@@ -29,9 +32,34 @@ namespace BeenThereDoneThat
             saveMissionDialog.onDismissCallback = onDismissMenu;
             saveMissionDialog.launchVehicleName = launchVehicleName;
             saveMissionDialog.vessel = vessel;
-            saveMissionDialog.missionName = vessel.GetDisplayName();
+            saveMissionDialog.missionName = GetMissionName(vessel);
 
             return saveMissionDialog;
+        }
+
+        private static string GetMissionName(Vessel vessel)
+        {
+            Orbit orbit = vessel.GetOrbit();
+            string missionName = string.Format("{0} - {1}", orbit.referenceBody.name, GetOrbitAltitude(orbit.ApA));
+            if (orbit.eccentricity > CONSIDERED_CIRCULAR)
+            {
+                missionName = string.Format("{0} - {1}", missionName, GetOrbitAltitude(orbit.PeA));
+            }
+            return missionName;
+        }
+
+        private static string GetOrbitAltitude(double altitude)
+        {
+            int alt = (int)altitude;
+            foreach (string unit in ALTITUDE_UNITS)
+            {
+                if (alt < 1000)
+                {
+                    return string.Format("{0}{1}", alt, unit);
+                }
+                alt /= 1000;
+            }
+            return "Pretty high";
         }
 
         public void Awake()
