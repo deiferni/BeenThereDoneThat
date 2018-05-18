@@ -140,13 +140,14 @@ namespace BeenThereDoneThat
             Payload payload = null;
             if (!QuickLauncher.Instance.Split(vessel.parts, out launchVehicle, out payload))
             {
-                // XXX
+                ScreenMessages.PostScreenMessage("No payload separator available", 4, ScreenMessageStyle.UPPER_CENTER);
                 return;
             }
 
             int key = launchVehicle.GetHashCode();
             if (!quickLaunchVessels.ContainsKey(key))
             {
+                ScreenMessages.PostScreenMessage("No missions available", 4, ScreenMessageStyle.UPPER_CENTER);
                 return;
             }
 
