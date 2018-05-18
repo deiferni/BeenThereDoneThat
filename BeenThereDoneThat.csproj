@@ -46,6 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BeenthereDoneThatDisplay.cs" />
+    <Compile Include="Utils.cs" />
     <Compile Include="QuickLaunchMission.cs" />
     <Compile Include="QuickLaunchMissionDialog.cs" />
     <Compile Include="QuickLaunchVessel.cs" />

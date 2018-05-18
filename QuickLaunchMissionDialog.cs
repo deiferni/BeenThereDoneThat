@@ -152,7 +152,7 @@ namespace BeenThereDoneThat
                 CelestialBody body = FlightGlobals.Bodies[orbit.ReferenceBodyIndex];
                 string orbitBody = string.Format("<color=#ffffff>Orbiting {0}</color>", body.name);
                 dialogGUIVerticalLayout2.AddChild(new DialogGUILabel(orbitBody, skin.customStyles[0], true, false));
-                string orbitInfo = string.Format("<color=#ffffff>SMA: {0}, Inc: {1}</color>", (int)orbit.semiMajorAxis, Math.Round(orbit.inclination, 3));
+                string orbitInfo = string.Format("<color=#ffffff>SMA: {0}, Inc: {1}</color>", Utils.FormatAltitude(orbit.semiMajorAxis), Math.Round(orbit.inclination, 3));
                 dialogGUIVerticalLayout.AddChild(new DialogGUILabel(orbitInfo, skin.customStyles[0], true, false));
 
                 dialogGUIToggleButton.AddChild(dialogGUIVerticalLayout);
