@@ -43,6 +43,7 @@ namespace BeenThereDoneThat
             SetOrbit();
             SetResources();
             RemoveBurnedParts();
+            DeployParts();
             Debug.Log("[BeenThereDoneThat]: Wohoooo done!");
         }
 
@@ -127,6 +128,12 @@ namespace BeenThereDoneThat
         {
             orbitLaunchVehicle.RemoveBurnedParts(currentLaunchVehicle);
             Debug.Log("[BeenThereDoneThat]: Removed burned parts/stages");
+        }
+
+        protected void DeployParts()
+        {
+            currentPayload.DeployParts();
+            Debug.Log("[BeenThereDoneThat]: Extended antenna and solar panels.");
         }
     }
 }

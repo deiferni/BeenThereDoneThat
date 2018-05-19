@@ -23,6 +23,42 @@ namespace BeenThereDoneThat
             return Math.Round(totalMass, 3);
         }
 
+        public void DeployParts()
+        {
+            DeployFairings();
+            DeployDeployableParts();
+
+        }
+
+        protected void DeployFairings()
+        {
+            foreach (Part payloadPart in parts)
+            {
+                foreach (ModuleProceduralFairing fairing in payloadPart.FindModulesImplementing<ModuleProceduralFairing>())
+                {
+                    Debug.Log(string.Format("[BeenThereDoneThat]: Deploying fairing {0}", payloadPart.name));
+                    fairing.DeployFairing();
+                }
+            }
+        }
+
+        protected void DeployDeployableParts()
+        {
+            foreach (Part payloadPart in parts)
+            {
+                foreach (ModuleDeployableAntenna antenna in payloadPart.FindModulesImplementing<ModuleDeployableAntenna>())
+                {
+                    Debug.Log(string.Format("[BeenThereDoneThat]: Extending antenna {0}", payloadPart.name));
+                    antenna.Extend();
+                }
+                foreach (ModuleDeployableSolarPanel panel in payloadPart.FindModulesImplementing<ModuleDeployableSolarPanel>())
+                {
+                    Debug.Log(string.Format("[BeenThereDoneThat]: Extending solar panel {0}", payloadPart.name));
+                    panel.Extend();
+                }
+            }
+        }
+
         public void DebugParts()
         {
             Debug.Log("[BeenThereDoneThat]: payload parts");
