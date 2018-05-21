@@ -39,6 +39,7 @@ namespace BeenThereDoneThat
             string[] launchVehicleDirectories = Directory.GetDirectories(directory);
             foreach (string launchVehiceDirectory in launchVehicleDirectories)
             {
+
                 string launchVehicleFile = Path.Combine(launchVehiceDirectory, LAUNCHFILENAME + ".craft");
                 if (!File.Exists(launchVehicleFile))
                 {
@@ -48,14 +49,16 @@ namespace BeenThereDoneThat
                 ProtoVessel prevlaunchProtoVessel = new ProtoVessel(prevLaunchRootNode, HighLogic.CurrentGame);
                 ProtoLaunchVehicle previousLaunchVehicle = null;
                 ProtoPayload previousPayload = null;
+
+                string[] parts = launchVehiceDirectory.Split(Path.DirectorySeparatorChar);
+                string vesselName = parts[parts.Length - 1];
+                Debug.Log(string.Format("[BeenThereDoneThat]: Loading vessel: {0}", vesselName));
+
                 if (!QuickLauncher.Instance.Split(prevlaunchProtoVessel, out previousLaunchVehicle, out previousPayload))
                 {
                     continue;
                 }
-
                 previousLaunchVehicle.DebugVehicle();
-                string[] parts = launchVehiceDirectory.Split(Path.DirectorySeparatorChar);
-                string vesselName = parts[parts.Length-1];
                 QuickLaunchVessel quickLaunchVessel = new QuickLaunchVessel(vesselName, prevlaunchProtoVessel, previousLaunchVehicle);
                 quickLaunchVessels[quickLaunchVessel.GetHashCode()] = quickLaunchVessel;
 
@@ -70,6 +73,10 @@ namespace BeenThereDoneThat
                     ProtoVessel orbitProtoVessel = new ProtoVessel(orbitRootNode, HighLogic.CurrentGame);
                     ProtoLaunchVehicle orbitLaunchVehicle = null;
                     ProtoPayload orbitPayload = null;
+
+                    string missionName = Path.GetFileNameWithoutExtension(missionFilePath);
+                    Debug.Log(string.Format("[BeenThereDoneThat]: Loading mission: {0}", missionName));
+
                     if (QuickLauncher.Instance.Split(orbitProtoVessel, out orbitLaunchVehicle, out orbitPayload))
                     {
                         quickLaunchVessel.AddMission(missionFilePath, orbitProtoVessel);
