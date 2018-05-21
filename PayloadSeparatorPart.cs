@@ -22,11 +22,22 @@ namespace BeenThereDoneThat
         }
 
         [KSPEvent(guiActiveEditor = true, guiName = "Debug: launch vehicle/payload parts")]
-        public void DebugParentsChildren()
+        public void DebugParentsChildrenEditor()
         {
             LaunchVehicle launchVehicle = null;
             Payload payload = null;
             QuickLauncher.Instance.Split(EditorLogic.SortedShipList, out launchVehicle, out payload);
+
+            payload.DebugParts();
+            launchVehicle.DebugParts();
+        }
+
+        [KSPEvent(guiActive = true, guiName = "Debug: launch vehicle/payload parts")]
+        public void DebugParentsChildrenFlight()
+        {
+            LaunchVehicle launchVehicle = null;
+            Payload payload = null;
+            QuickLauncher.Instance.Split(FlightGlobals.ActiveVessel.parts, out launchVehicle, out payload);
 
             payload.DebugParts();
             launchVehicle.DebugParts();
