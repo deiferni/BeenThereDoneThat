@@ -54,6 +54,8 @@ namespace BeenThereDoneThat
         {
             if (parts.Count < launchVehicle.parts.Count)
             {
+                int offset = launchVehicle.separator.separationIndex - separator.separationIndex;
+                int sepearationIndexCutoff = maxSeparationIndex + offset;
                 int diff = launchVehicle.parts.Count - parts.Count;
                 int count = 0;
                 List<Part> toDie = new List<Part>();
@@ -61,7 +63,7 @@ namespace BeenThereDoneThat
 
                 foreach (Part vesselPart in launchVehicle.parts)
                 {
-                    if (vesselPart.separationIndex > maxSeparationIndex)
+                    if (vesselPart.separationIndex > sepearationIndexCutoff)
                     {
                         Debug.Log(string.Format("[BeenThereDoneThat]: Removing part {0}", vesselPart.name));
                         toDie.Add(vesselPart);
