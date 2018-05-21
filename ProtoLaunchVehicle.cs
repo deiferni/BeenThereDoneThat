@@ -88,18 +88,33 @@ namespace BeenThereDoneThat
             }
         }
 
-        public void DebugParts()
+        public void DebugVehicle()
         {
             Debug.Log("[BeenThereDoneThat]: proto launch vehicle parts");
+            DebugParts();
+            DebugResources();
+            DebugHashCode();
+        }
+
+        public void DebugParts()
+        {
             foreach (ProtoPartSnapshot part in parts)
             {
                 Debug.Log(part.partName);
             }
+        }
+
+        public void DebugResources()
+        {
             foreach (string resourceKey in resources.Keys)
             {
                 double amount = resources[resourceKey].GetHashCode();
                 Debug.Log(string.Format("{0}: {1})", resourceKey, amount));
             }
+        }
+
+        public void DebugHashCode()
+        {
             Debug.Log(string.Format("hash: {0})", GetHashCode()));
         }
 

@@ -74,7 +74,7 @@ namespace BeenThereDoneThat
             List<AvailablePart> protoPartInfos = new List<AvailablePart>();
             Dictionary<string, double> protoResources = new Dictionary<string, double>();
 
-            previousLaunchVehicle.DebugParts();
+            previousLaunchVehicle.DebugVehicle();
             currentLaunchVehicle.DebugParts();
 
             if (!previousLaunchVehicle.Equals(currentLaunchVehicle))

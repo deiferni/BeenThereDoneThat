@@ -53,6 +53,7 @@ namespace BeenThereDoneThat
                     continue;
                 }
 
+                previousLaunchVehicle.DebugVehicle();
                 string[] parts = launchVehiceDirectory.Split(Path.DirectorySeparatorChar);
                 string vesselName = parts[parts.Length-1];
                 QuickLaunchVessel quickLaunchVessel = new QuickLaunchVessel(vesselName, prevlaunchProtoVessel, previousLaunchVehicle);
